@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@ummati/api": ["packages/api/src"],
+      "@ummati/db": ["packages/db/src"],
+      "@ummati/config/*": ["packages/config/*"]
+    }
+  },
+  "include": ["apps/**/*", "packages/**/*", "scripts/**/*"],
+  "exclude": ["node_modules", "dist", "build"]
+}
+

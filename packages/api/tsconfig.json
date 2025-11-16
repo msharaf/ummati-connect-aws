@@ -1,0 +1,11 @@
+{
+  "extends": "@ummati/config/tsconfig",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@ummati/api/*": ["src/*"]
+    }
+  },
+  "include": ["src"]
+}
+

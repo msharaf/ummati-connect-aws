@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String    @id @default(cuid())
+  clerkId    String    @unique
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  email      String    @unique
+  name       String?
+  role       UserRole?
+  avatarUrl  String?
+  location   String?
+  pushToken  String?
+  isAdmin    Boolean   @default(false)
+  isBanned   Boolean   @default(false)
+  investorProfile  InvestorProfile?
+  visionaryProfile VisionaryProfile?
+  swipesSent       Swipe[]          @relation("SwipesSent")
+  swipesReceived   Swipe[]          @relation("SwipesReceived")
+  matchesAsUserA   Match[]          @relation("MatchesAsUserA")
+  matchesAsUserB   Match[]          @relation("MatchesAsUserB")
+  messages         Message[]        @relation("UserMessages")
+  shortlists       Shortlist[]      @relation("InvestorShortlists")
+  profileViews     ProfileView[]     @relation("InvestorProfileViews")
+
+  @@index([role])
+  @@index([clerkId])
+  @@index([isAdmin])
+  @@index([isBanned])
+}
+
+model InvestorProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  minTicketSize       Int?
+  maxTicketSize       Int?
+  preferredSectors    String[]
+  geoFocus            String?
+  investmentThesis    String?
+  hasAcceptedHalalTerms Boolean @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id])
+}
+
+model VisionaryProfile {
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  startupName     String
+  tagline          String?         // Short tagline/slogan
+  startupStage    StartupStage
+  sector          String
+  description     String?         // Optional description
+  pitch           String?         // Optional pitch text
+  fundingAsk      Int?
+  location        String?
+  websiteUrl      String?
+  logoUrl         String?         // Startup logo URL
+  teamSize        Int?            // Number of team members
+  halalCategory   String?         // e.g. "Finance", "Food", "SaaS"
+  riskCategory    RiskCategory?   // HALAL, GREY, or HARAM
+  isApproved      Boolean         @default(false)
+  isFlagged       Boolean         @default(false)
+  rejectionReason String?
+  halalResponses  Json?           // Store questionnaire responses for auditing
+  barakahScore    BarakahScore?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shortlists      Shortlist[]     @relation("VisionaryShortlists")
+  profileViews    ProfileView[]   @relation("VisionaryProfileViews")
+
+  @@index([sector])
+  @@index([startupStage])
+  @@index([location])
+  @@index([halalCategory])
+  @@index([riskCategory])
+  @@index([isApproved])
+  @@index([isFlagged])
+}
+
+model Swipe {
+  id        String         @id @default(cuid())
+  swiperId  String
+  targetId  String
+  direction SwipeDirection
+  createdAt DateTime        @default(now())
+
+  swiper User @relation("SwipesSent", fields: [swiperId], references: [id], onDelete: Cascade)
+  target User @relation("SwipesReceived", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([swiperId, targetId])
+  @@index([swiperId])
+  @@index([targetId])
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  userAId   String
+  userBId   String
+  createdAt DateTime @default(now())
+
+  userA User @relation("MatchesAsUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("MatchesAsUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  matchId   String
+  senderId  String
+  text      String
+  readBy    String[] @default([]) // Array of userIds who have read the message
+  createdAt DateTime @default(now())
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender User  @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([matchId, createdAt])
+  @@index([senderId])
+}
+
+model BarakahScore {
+  id                  String            @id @default(cuid())
+  visionaryProfileId  String            @unique
+  score               Int               @db.SmallInt
+  notes               String?
+
+  visionaryProfile VisionaryProfile @relation(fields: [visionaryProfileId], references: [id], onDelete: Cascade)
+}
+
+model Shortlist {
+  id          String   @id @default(cuid())
+  investorId String
+  visionaryId String
+  createdAt   DateTime @default(now())
+
+  investor  User            @relation("InvestorShortlists", fields: [investorId], references: [id], onDelete: Cascade)
+  visionary VisionaryProfile @relation("VisionaryShortlists", fields: [visionaryId], references: [id], onDelete: Cascade)
+
+  @@unique([investorId, visionaryId])
+  @@index([investorId])
+  @@index([visionaryId])
+}
+
+model ProfileView {
+  id          String   @id @default(cuid())
+  visionaryId String
+  investorId  String
+  createdAt   DateTime @default(now())
+
+  visionary VisionaryProfile @relation("VisionaryProfileViews", fields: [visionaryId], references: [id], onDelete: Cascade)
+  investor  User            @relation("InvestorProfileViews", fields: [investorId], references: [id], onDelete: Cascade)
+
+  @@index([visionaryId, createdAt])
+  @@index([investorId, createdAt])
+  @@index([investorId, visionaryId])
+}
+
+enum UserRole {
+  INVESTOR
+  VISIONARY
+}
+
+enum SwipeDirection {
+  LIKE
+  DISLIKE
+}
+
+enum StartupStage {
+  IDEA
+  MVP
+  TRACTION
+  SCALING
+}
+
+enum RiskCategory {
+  HALAL
+  GREY
+  HARAM
+}
+
