@@ -59,8 +59,8 @@ The project includes `.env` files that need your Clerk keys and database URL.
 
 #### 3.1: Get Clerk API Keys
 
-1. Go to [Clerk Dashboard](https://dashboard.clerk.com)
-2. Create a new application (or use existing)
+1. Login to [Clerk Dashboard](https://dashboard.clerk.com) using ummatination credential
+2. Click on Application name "ummati2.0"
 3. Navigate to **API Keys**
 4. Copy:
    - **Publishable Key** (starts with `pk_test_...`)
