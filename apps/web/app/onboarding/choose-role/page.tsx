@@ -15,14 +15,24 @@ export default function ChooseRolePage() {
   const setRole = trpc.user.setRole.useMutation({
     onSuccess: (updatedUser) => {
       // Invalidate queries
-      utils.user.getMe.invalidate();
-      utils.auth.getCurrentUser.invalidate();
+      utils.user.me.invalidate();
 
-      // Redirect based on role
-      if (updatedUser.role === "INVESTOR") {
-        router.push("/investor/dashboard");
-      } else if (updatedUser.role === "VISIONARY") {
-        router.push("/visionary/dashboard");
+      // Redirect based on role and onboarding status
+      if (updatedUser.onboardingComplete) {
+        if (updatedUser.role === "INVESTOR") {
+          router.push("/investor/dashboard");
+        } else if (updatedUser.role === "VISIONARY") {
+          router.push("/visionary/dashboard");
+        } else {
+          router.push("/dashboard");
+        }
+      } else {
+        // If onboarding not complete, redirect to appropriate setup page
+        if (updatedUser.role === "INVESTOR") {
+          router.push("/investor/setup");
+        } else if (updatedUser.role === "VISIONARY") {
+          router.push("/visionary/setup");
+        }
       }
     },
     onError: (error) => {
@@ -31,13 +41,22 @@ export default function ChooseRolePage() {
     }
   });
 
-  // If user already has a role, redirect to their dashboard
+  // If user already has a role and onboarding is complete, redirect to their dashboard
   useEffect(() => {
-    if (user?.role) {
+    if (user?.onboardingComplete && user?.role) {
       if (user.role === "INVESTOR") {
         router.push("/investor/dashboard");
       } else if (user.role === "VISIONARY") {
         router.push("/visionary/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
+    } else if (user?.role && !user.onboardingComplete) {
+      // User has role but onboarding not complete - redirect to setup
+      if (user.role === "INVESTOR") {
+        router.push("/investor/setup");
+      } else if (user.role === "VISIONARY") {
+        router.push("/visionary/setup");
       }
     }
   }, [user, router]);

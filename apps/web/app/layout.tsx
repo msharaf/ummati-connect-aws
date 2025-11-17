@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "../styles/globals.css";
+import { ClerkErrorHandler } from "../components/ClerkErrorHandler";
 import { TRPCProvider } from "../src/lib/trpc";
 
 export const metadata: Metadata = {
@@ -29,13 +30,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className="min-h-screen bg-white text-black">
-          <TRPCProvider>{children}</TRPCProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body className="min-h-screen bg-white text-black">
+        <ClerkErrorHandler>
+          <ClerkProvider
+            afterSignInUrl="/dashboard"
+            afterSignUpUrl="/onboarding/choose-role"
+          >
+            <TRPCProvider>{children}</TRPCProvider>
+          </ClerkProvider>
+        </ClerkErrorHandler>
+      </body>
+    </html>
   );
 }
 
