@@ -9,15 +9,10 @@ const isPublicRoute = createRouteMatcher([
   "/about"
 ]);
 
-// Define onboarding routes (require auth but no role)
-const isOnboardingRoute = createRouteMatcher(["/onboarding(.*)"]);
-
-export default clerkMiddleware(async (auth, req) => {
-  // Protect all routes except public ones
-  if (!isPublicRoute(req)) {
-    await auth.protect();
-  }
-
+export default clerkMiddleware((auth, req) => {
+  // Clerk v5 automatically protects routes that aren't in the public matcher
+  // No need to explicitly call protect() - it's handled automatically
+  
   // Note: Role-based redirects are handled client-side in RoleGuard component
   // This is because we need to call tRPC to get user role, which requires
   // the user to be authenticated first (handled by Clerk middleware above)
