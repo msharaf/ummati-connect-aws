@@ -9,7 +9,7 @@ export default function ChooseRolePage() {
   const utils = trpc.useUtils();
 
   // Get current user
-  const { data: user, isLoading: isLoadingUser } = trpc.user.getMe.useQuery();
+  const { data: user, isLoading: isLoadingUser } = trpc.user.me.useQuery();
 
   // Set role mutation
   const setRole = trpc.user.setRole.useMutation({

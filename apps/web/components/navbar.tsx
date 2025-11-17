@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useUser, SignOutButton } from "@clerk/nextjs";
+import { Button } from "./ui/Button";
 
 const navLinks = [
   { href: "#features", label: "Features" },
@@ -7,6 +11,8 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  const { isSignedIn, isLoaded } = useUser();
+
   return (
     <header className="sticky top-0 z-50 bg-emerald-50/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -21,12 +27,30 @@ export function Navbar() {
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:border-emerald-400 hover:text-emerald-900"
-          >
-            Launch App
-          </Link>
+          {!isLoaded ? (
+            <div className="h-9 w-20 animate-pulse rounded-full bg-emerald-200"></div>
+          ) : isSignedIn ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:border-emerald-400 hover:text-emerald-900"
+              >
+                Dashboard
+              </Link>
+              <SignOutButton>
+                <button className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
+                  Logout
+                </button>
+              </SignOutButton>
+            </>
+          ) : (
+            <Link
+              href="/sign-in"
+              className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
+            >
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </header>

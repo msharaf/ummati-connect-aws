@@ -45,8 +45,14 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
             (opts.direction === "down" && opts.result instanceof Error)
         }),
         httpBatchLink({
-          url: `${getBaseUrl()}/api/trpc`
-          // Clerk middleware handles authentication automatically
+          url: `${getBaseUrl()}/api/trpc`,
+          // Include credentials (cookies) so Clerk session is sent
+          fetch(url, options) {
+            return fetch(url, {
+              ...options,
+              credentials: "include"
+            });
+          }
         })
       ]
     })

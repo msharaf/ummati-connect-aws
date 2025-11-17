@@ -1,48 +1,37 @@
 "use client";
 
-import { useEffect } from "react";
-import { trpc } from "../../lib/trpcClient";
+import { trpc } from "../../src/lib/trpc";
+import { DashboardGuard } from "../../components/DashboardGuard";
 import { ProfileCard } from "../../components/profile-card";
-import { useAuthStore } from "../../store/useAuthStore";
-
-const demoUser = {
-  id: "ckdemo-investor",
-  fullName: "Demo Investor",
-  role: "INVESTOR" as const
-};
 
 export default function DashboardPage() {
-  const { user, setUser } = useAuthStore();
-
-  useEffect(() => {
-    if (!user) {
-      setUser(demoUser);
-    }
-  }, [setUser, user]);
-
+  const { data: userData } = trpc.user.me.useQuery();
+  
   const { data: recommendations } = trpc.matchmaking.getRecommendations.useQuery(
-    { userId: user?.id ?? demoUser.id, limit: 6 },
+    undefined,
     {
-      enabled: Boolean(user?.id),
+      enabled: !!userData?.profile,
       staleTime: 1000 * 60
     }
   );
 
   const { data: matches } = trpc.matchmaking.getMatches.useQuery(
-    { userId: user?.id ?? demoUser.id },
-    { enabled: Boolean(user?.id), refetchInterval: 1000 * 30 }
+    undefined,
+    { enabled: !!userData?.profile, refetchInterval: 1000 * 30 }
   );
 
   return (
-    <div className="min-h-screen bg-emerald-50">
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <header className="flex flex-col gap-2">
-          <span className="text-sm font-semibold uppercase text-emerald-700">
-            Dashboard
-          </span>
-          <h1 className="text-3xl font-semibold text-charcoal">
-            As-salaam, {user?.fullName ?? demoUser.fullName}
-          </h1>
+    <DashboardGuard>
+
+      <div className="min-h-screen bg-emerald-50">
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <header className="flex flex-col gap-2">
+            <span className="text-sm font-semibold uppercase text-emerald-700">
+              Dashboard
+            </span>
+            <h1 className="text-3xl font-semibold text-charcoal">
+              As-salaam, {userData?.profile?.name ?? "User"}
+            </h1>
           <p className="text-sm text-charcoal/70">
             Discover visionaries aligned with your halal mandates. Swipe to
             connect, monitor matches, and nurture relationships.
@@ -85,7 +74,7 @@ export default function DashboardPage() {
           <div className="mt-6 space-y-4">
             {matches?.map((match) => {
               const counterpart =
-                match.investorId === (user?.id ?? demoUser.id)
+                match.investorId === userData?.profile?.id
                   ? match.visionary
                   : match.investor;
               return (
@@ -121,9 +110,10 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-        </section>
+          </section>
+        </div>
       </div>
-    </div>
+    </DashboardGuard>
   );
 }
 

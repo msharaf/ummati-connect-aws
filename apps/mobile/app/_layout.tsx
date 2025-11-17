@@ -16,8 +16,8 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
-  // Get user role (only if signed in)
-  const { data: user, isLoading: isLoadingUser } = trpc.user.getMe.useQuery(
+  // Get user profile (only if signed in)
+  const { data: userData, isLoading: isLoadingUser } = trpc.user.me.useQuery(
     undefined,
     {
       enabled: isSignedIn && isLoaded,
@@ -40,31 +40,34 @@ function RootLayoutNav() {
       return;
     }
 
-    // User is signed in - check role
+    // User is signed in - check onboarding status
     if (isLoadingUser) {
       // Still loading user data, wait
       return;
     }
 
     // User is signed in and data is loaded
-    if (!user?.role) {
-      // User has no role - redirect to choose-role (unless already there)
+    if (!userData?.onboardingComplete) {
+      // Onboarding not complete - redirect to choose-role (unless already there)
       if (!isChooseRole) {
         router.replace("/(auth)/choose-role");
       }
       return;
     }
 
-    // User has a role
+    // User has completed onboarding
     if (inAuthGroup && !isChooseRole) {
-      // User is in auth group but not on choose-role - redirect to appropriate dashboard
-      if (user.role === "INVESTOR") {
+      // User is in auth group but onboarding is complete - redirect to appropriate dashboard
+      if (userData.role === "INVESTOR") {
         router.replace("/(tabs)/investor");
-      } else if (user.role === "VISIONARY") {
+      } else if (userData.role === "VISIONARY") {
         router.replace("/(tabs)/visionary/dashboard");
+      } else {
+        // Default to swipe screen
+        router.replace("/(tabs)/swipe");
       }
     }
-  }, [isSignedIn, isLoaded, segments, user, isLoadingUser, router]);
+  }, [isSignedIn, isLoaded, segments, userData, isLoadingUser, router]);
 
   return (
     <QueryClientProvider client={queryClient}>

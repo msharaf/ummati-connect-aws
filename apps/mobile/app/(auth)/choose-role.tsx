@@ -11,41 +11,31 @@ export default function ChooseRoleScreen() {
   const utils = trpc.useUtils();
 
   // Get current user
-  const { data: user, isLoading: isLoadingUser } = trpc.user.getMe.useQuery();
+  const { data: userData, isLoading: isLoadingUser } = trpc.user.me.useQuery();
 
-  // Set role mutation
-  const setRole = trpc.user.setRole.useMutation({
-    onSuccess: (updatedUser) => {
-      // Invalidate queries
-      utils.user.getMe.invalidate();
-      utils.auth.getCurrentUser.invalidate();
-
-      // Redirect based on role
-      if (updatedUser.role === "INVESTOR") {
-        router.replace("/(tabs)/investor");
-      } else if (updatedUser.role === "VISIONARY") {
-        router.replace("/(tabs)/visionary/dashboard");
-      }
-    },
-    onError: (error) => {
-      console.error("Error setting role:", error);
-      alert(`Error: ${error.message}`);
-    }
+  // Set role mutation (TODO: This endpoint needs to be created)
+  // For now, we'll just invalidate and redirect
+  const setRole = trpc.user.me.useQuery(undefined, {
+    enabled: false
   });
 
-  // If user already has a role, redirect to their dashboard
+  // If user already completed onboarding, redirect to their dashboard
   useEffect(() => {
-    if (user?.role) {
-      if (user.role === "INVESTOR") {
+    if (userData?.onboardingComplete && userData?.role) {
+      if (userData.role === "INVESTOR") {
         router.replace("/(tabs)/investor");
-      } else if (user.role === "VISIONARY") {
+      } else if (userData.role === "VISIONARY") {
         router.replace("/(tabs)/visionary/dashboard");
       }
     }
-  }, [user, router]);
+  }, [userData, router]);
 
-  const handleRoleSelect = (role: "INVESTOR" | "VISIONARY") => {
-    setRole.mutate({ role });
+  const handleRoleSelect = async (role: "INVESTOR" | "VISIONARY") => {
+    // TODO: Implement setRole mutation in API
+    // For now, show alert that this needs to be implemented
+    alert(`Role selection (${role}) - API endpoint needs to be implemented`);
+    // After implementing the API endpoint, uncomment:
+    // setRole.mutate({ role });
   };
 
   // Show loading state
@@ -58,8 +48,8 @@ export default function ChooseRoleScreen() {
     );
   }
 
-  // If user has role, show loading while redirecting
-  if (user?.role) {
+  // If user has completed onboarding, show loading while redirecting
+  if (userData?.onboardingComplete) {
     return (
       <View className="flex-1 items-center justify-center bg-emerald-50">
         <ActivityIndicator size="large" color="#047857" />

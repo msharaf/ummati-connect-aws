@@ -1,4 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@ummati/db";
 
 // Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -9,13 +11,57 @@ const isPublicRoute = createRouteMatcher([
   "/about"
 ]);
 
-export default clerkMiddleware((auth, req) => {
-  // Clerk v5 automatically protects routes that aren't in the public matcher
-  // No need to explicitly call protect() - it's handled automatically
-  
-  // Note: Role-based redirects are handled client-side in RoleGuard component
-  // This is because we need to call tRPC to get user role, which requires
-  // the user to be authenticated first (handled by Clerk middleware above)
+// Define onboarding routes
+const isOnboardingRoute = createRouteMatcher(["/onboarding(.*)"]);
+
+export default clerkMiddleware(async (auth, req) => {
+  const { userId } = await auth();
+  const url = req.nextUrl.clone();
+
+  // If user is not authenticated, let Clerk handle protection
+  if (!userId) {
+    // Allow public routes and onboarding routes
+    if (isPublicRoute(req) || isOnboardingRoute(req)) {
+      return NextResponse.next();
+    }
+    // Redirect to sign-in for protected routes
+    const signInUrl = new URL("/sign-in", req.url);
+    signInUrl.searchParams.set("redirect_url", url.pathname);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  // User is authenticated - check onboarding status
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      include: {
+        investorProfile: true,
+        visionaryProfile: true
+      }
+    });
+
+    if (user) {
+      const onboardingComplete =
+        user.role !== null &&
+        ((user.role === "INVESTOR" && user.investorProfile !== null) ||
+          (user.role === "VISIONARY" && user.visionaryProfile !== null));
+
+      // If onboarding is not complete, force them to stay in onboarding
+      if (!onboardingComplete && !isOnboardingRoute(req)) {
+        return NextResponse.redirect(new URL("/onboarding/choose-role", req.url));
+      }
+
+      // If onboarding is complete but they're trying to access onboarding, redirect to dashboard
+      if (onboardingComplete && isOnboardingRoute(req)) {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+    }
+  } catch (error) {
+    console.error("Error checking user onboarding status:", error);
+    // On error, allow the request to proceed
+  }
+
+  return NextResponse.next();
 });
 
 export const config = {

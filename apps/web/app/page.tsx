@@ -1,12 +1,36 @@
+import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { getCurrentUserProfile } from "../lib/server/user";
+import { Navbar } from "../components/navbar";
 import { Button } from "../components/ui/Button";
 import { StepCard } from "../components/ui/StepCard";
 import { ValueCard } from "../components/ui/ValueCard";
 import { ScreenshotPlaceholder } from "../components/ui/ScreenshotPlaceholder";
 import { Footer } from "../components/Footer";
 
-export default function Home() {
+export default async function Home() {
+  // Check if user is logged in
+  const { userId } = await auth();
+
+  if (userId) {
+    // User is logged in - check onboarding status
+    const userProfile = await getCurrentUserProfile();
+
+    if (userProfile) {
+      if (!userProfile.onboardingComplete) {
+        // Redirect to onboarding if not complete
+        redirect("/onboarding/choose-role");
+      } else {
+        // Redirect to dashboard if onboarding is complete
+        redirect("/dashboard");
+      }
+    }
+  }
+
+  // User is not logged in - show landing page
   return (
     <div className="min-h-screen bg-emerald-50">
+      <Navbar />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 pt-24 pb-20">
         {/* Decorative geometric pattern */}
