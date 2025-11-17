@@ -14,8 +14,8 @@ cp .env.example .env   # if provided; otherwise create .env per docs/LOCAL_DEV.m
 
 ### Database
 ```
-pnpm --filter @ummati/db prisma generate
-pnpm --filter @ummati/db prisma migrate dev
+pnpm --filter @ummati/db exec prisma generate
+pnpm --filter @ummati/db exec prisma migrate dev
 ```
 
 ### Run Apps
@@ -42,7 +42,7 @@ pnpm dev:api
 pnpm build
 pnpm lint
 pnpm test
-pnpm --filter @ummati/db prisma studio
+pnpm --filter @ummati/db exec prisma studio
 ```
 
 
