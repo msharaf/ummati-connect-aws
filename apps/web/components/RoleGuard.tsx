@@ -12,13 +12,13 @@ interface RoleGuardProps {
 export function RoleGuard({ children, requiredRole }: RoleGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: user, isLoading } = trpc.user.getMe.useQuery();
+  const { data: userData, isLoading } = trpc.user.me.useQuery();
 
   useEffect(() => {
     if (isLoading) return;
 
     // If user has no role, redirect to onboarding
-    if (!user?.role) {
+    if (!userData?.role) {
       // Only redirect if not already on onboarding page
       if (!pathname.startsWith("/onboarding")) {
         router.push("/onboarding/choose-role");
@@ -27,16 +27,16 @@ export function RoleGuard({ children, requiredRole }: RoleGuardProps) {
     }
 
     // If role is required and doesn't match, redirect
-    if (requiredRole && user.role !== requiredRole) {
+    if (requiredRole && userData.role !== requiredRole) {
       // Redirect to appropriate dashboard
-      if (user.role === "INVESTOR") {
+      if (userData.role === "INVESTOR") {
         router.push("/investor/dashboard");
-      } else if (user.role === "VISIONARY") {
+      } else if (userData.role === "VISIONARY") {
         router.push("/visionary/dashboard");
       }
       return;
     }
-  }, [user, isLoading, requiredRole, router, pathname]);
+  }, [userData, isLoading, requiredRole, router, pathname]);
 
   // Show loading state
   if (isLoading) {
@@ -51,7 +51,7 @@ export function RoleGuard({ children, requiredRole }: RoleGuardProps) {
   }
 
   // If user has no role, show loading while redirecting
-  if (!user?.role) {
+  if (!userData?.role) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-emerald-50">
         <div className="text-center">
@@ -63,7 +63,7 @@ export function RoleGuard({ children, requiredRole }: RoleGuardProps) {
   }
 
   // If role doesn't match required role, show loading while redirecting
-  if (requiredRole && user.role !== requiredRole) {
+  if (requiredRole && userData.role !== requiredRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-emerald-50">
         <div className="text-center">

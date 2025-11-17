@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import React from "react";
 import "@testing-library/jest-dom";
 
 // Mock Next.js router
@@ -18,9 +19,10 @@ vi.mock("next/navigation", () => ({
 
 // Mock Next.js Link
 vi.mock("next/link", () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  )
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => {
+    // eslint-disable-next-line react/jsx-no-target-blank
+    return React.createElement("a", { href }, children);
+  }
 }));
 
 // Mock Clerk

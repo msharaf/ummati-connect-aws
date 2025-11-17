@@ -17,8 +17,10 @@ export async function createContext(opts: CreateContextOptions = {}) {
   // If we have an auth token but no userId, verify it with Clerk
   if (opts.authToken && !userId) {
     try {
-      const { sub } = await verifyToken(opts.authToken);
-      userId = sub;
+      const payload = await verifyToken(opts.authToken, {
+        secretKey: process.env.CLERK_SECRET_KEY
+      });
+      userId = payload.sub;
     } catch (error) {
       // Token invalid, userId remains null
       console.error("Failed to verify auth token:", error);

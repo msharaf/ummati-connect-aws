@@ -44,13 +44,13 @@ export default function DashboardPage() {
             Tailored by geography, industry thesis, and barakah resonance.
           </p>
           <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {recommendations?.map((profile) => (
+            {recommendations?.recommendations?.map((profile: any) => (
               <ProfileCard
                 key={profile.id}
                 type={profile.type === "INVESTOR" ? "INVESTOR" : "VISIONARY"}
-                name={profile.fullName}
-                location={[profile.city, profile.country].filter(Boolean).join(", ")}
-                industries={profile.industries}
+                name={profile.fullName || profile.name || "Unknown"}
+                location={[profile.city, profile.country].filter(Boolean).join(", ") || profile.location || ""}
+                industries={profile.industries || []}
                 barakahScore={
                   profile.visionaryProfile?.barakahScore ??
                   profile.investorProfile?.barakahScore ??
@@ -58,9 +58,9 @@ export default function DashboardPage() {
                 }
               />
             ))}
-            {!recommendations?.length && (
+            {!recommendations?.recommendations?.length && (
               <div className="rounded-2xl border border-dashed border-emerald-200 bg-white/70 p-6 text-sm text-charcoal/60">
-                No recommendations yet. Complete your profile and check again soon.
+                {recommendations?.message || "No recommendations yet. Complete your profile and check again soon."}
               </div>
             )}
           </div>
@@ -72,7 +72,7 @@ export default function DashboardPage() {
             Mutual right swipes appear here with quick access to diligence tools.
           </p>
           <div className="mt-6 space-y-4">
-            {matches?.map((match) => {
+            {matches?.matches?.map((match: any) => {
               const counterpart =
                 match.investorId === userData?.profile?.id
                   ? match.visionary
@@ -84,13 +84,13 @@ export default function DashboardPage() {
                 >
                   <div>
                     <p className="text-sm font-semibold text-emerald-700">
-                      {match.status === "ACTIVE" ? "Active Match" : match.status}
+                      {match.status === "ACTIVE" ? "Active Match" : match.status || "Match"}
                     </p>
                     <h3 className="mt-1 text-lg font-semibold text-charcoal">
-                      {counterpart.fullName}
+                      {counterpart?.fullName || counterpart?.name || "Unknown"}
                     </h3>
                     <p className="text-sm text-charcoal/70">
-                      {counterpart.industries.join(" • ")}
+                      {counterpart?.industries?.join(" • ") || ""}
                     </p>
                   </div>
                   <div className="flex gap-3">
@@ -104,9 +104,9 @@ export default function DashboardPage() {
                 </div>
               );
             })}
-            {!matches?.length && (
+            {!matches?.matches?.length && (
               <div className="rounded-2xl border border-dashed border-emerald-200 bg-white/70 p-6 text-sm text-charcoal/60">
-                Start swiping to create your first match infused with barakah.
+                {matches?.message || "Start swiping to create your first match infused with barakah."}
               </div>
             )}
           </div>
