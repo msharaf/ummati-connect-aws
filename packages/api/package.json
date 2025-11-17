@@ -8,7 +8,9 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc --project tsconfig.build.json",
     "lint": "eslint \"src/**/*.ts\"",
-    "test": "vitest"
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "@clerk/backend": "^1.0.0",
@@ -27,4 +29,3 @@
     "vitest": "^0.34.6"
   }
 }
-
