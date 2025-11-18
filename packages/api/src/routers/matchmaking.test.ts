@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { matchmakingRouter } from "./matchmaking";
-import { createCallerFactory } from "@trpc/server";
-
-const createCaller = createCallerFactory(matchmakingRouter);
 
 describe("matchmakingRouter", () => {
   const mockCtx = {
@@ -16,7 +13,7 @@ describe("matchmakingRouter", () => {
 
   describe("getRecommendations query", () => {
     it("should return recommendations structure", async () => {
-      const caller = createCaller(mockCtx);
+      const caller = matchmakingRouter.createCaller(mockCtx);
       const result = await caller.getRecommendations();
 
       expect(result).toHaveProperty("recommendations");
@@ -28,7 +25,7 @@ describe("matchmakingRouter", () => {
 
   describe("getMatches query", () => {
     it("should return matches structure", async () => {
-      const caller = createCaller(mockCtx);
+      const caller = matchmakingRouter.createCaller(mockCtx);
       const result = await caller.getMatches();
 
       expect(result).toHaveProperty("matches");

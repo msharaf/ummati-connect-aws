@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String    @id @default(cuid())
+  clerkId    String    @unique
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  email      String    @unique
+  name       String?
+  role       String? // UserRole enum converted to String for SQLite
+  avatarUrl  String?
+  location   String?
+  pushToken  String?
+  isAdmin    Boolean   @default(false)
+  isBanned   Boolean   @default(false)
+  investorProfile  InvestorProfile?
+  visionaryProfile VisionaryProfile?
+  swipesSent       Swipe[]          @relation("SwipesSent")
+  swipesReceived   Swipe[]          @relation("SwipesReceived")
+  matchesAsUserA   Match[]          @relation("MatchesAsUserA")
+  matchesAsUserB   Match[]          @relation("MatchesAsUserB")
+  messages         Message[]        @relation("UserMessages")
+  shortlists       Shortlist[]      @relation("InvestorShortlists")
+  profileViews     ProfileView[]     @relation("InvestorProfileViews")
+
+  @@index([role])
+  @@index([clerkId])
+  @@index([isAdmin])
+  @@index([isBanned])
+}
+
+model InvestorProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  minTicketSize       Int?
+  maxTicketSize       Int?
+  preferredSectors    String   // SQLite doesn't support arrays, use JSON string
+  geoFocus            String?
+  investmentThesis    String?
+  hasAcceptedHalalTerms Boolean @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model VisionaryProfile {
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  startupName     String
+  tagline          String?
+  startupStage    String // StartupStage enum converted to String for SQLite
+  sector          String
+  description     String?
+  pitch           String?
+  fundingAsk      Int?
+  location        String?
+  websiteUrl      String?
+  logoUrl         String?
+  teamSize        Int?
+  halalCategory   String?
+  riskCategory    String? // RiskCategory enum converted to String for SQLite
+  isApproved      Boolean         @default(false)
+  isFlagged       Boolean         @default(false)
+  rejectionReason String?
+  halalResponses  String?         // JSON string for SQLite
+  barakahScore    BarakahScore?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shortlists      Shortlist[]     @relation("VisionaryShortlists")
+  profileViews    ProfileView[]   @relation("VisionaryProfileViews")
+
+  @@index([sector])
+  @@index([startupStage])
+  @@index([location])
+  @@index([halalCategory])
+  @@index([riskCategory])
+  @@index([isApproved])
+  @@index([isFlagged])
+}
+
+model Swipe {
+  id        String         @id @default(cuid())
+  swiperId  String
+  targetId  String
+  direction String // SwipeDirection enum converted to String for SQLite
+  createdAt DateTime        @default(now())
+
+  swiper User @relation("SwipesSent", fields: [swiperId], references: [id], onDelete: Cascade)
+  target User @relation("SwipesReceived", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([swiperId, targetId])
+  @@index([swiperId])
+  @@index([targetId])
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  userAId   String
+  userBId   String
+  createdAt DateTime @default(now())
+
+  userA User @relation("MatchesAsUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("MatchesAsUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  matchId   String
+  senderId  String
+  text      String
+  readBy    String   @default("[]") // JSON array as string for SQLite
+  createdAt DateTime @default(now())
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender User  @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([matchId, createdAt])
+  @@index([senderId])
+}
+
+model BarakahScore {
+  id                  String            @id @default(cuid())
+  visionaryProfileId  String            @unique
+  score               Int
+  notes               String?
+
+  visionaryProfile VisionaryProfile @relation(fields: [visionaryProfileId], references: [id], onDelete: Cascade)
+
+  @@index([visionaryProfileId])
+}
+
+model Shortlist {
+  id          String   @id @default(cuid())
+  investorId String
+  visionaryId String
+  createdAt   DateTime @default(now())
+
+  investor  User            @relation("InvestorShortlists", fields: [investorId], references: [id], onDelete: Cascade)
+  visionary VisionaryProfile @relation("VisionaryShortlists", fields: [visionaryId], references: [id], onDelete: Cascade)
+
+  @@unique([investorId, visionaryId])
+  @@index([investorId])
+  @@index([visionaryId])
+}
+
+model ProfileView {
+  id          String   @id @default(cuid())
+  visionaryId String
+  investorId  String
+  createdAt   DateTime @default(now())
+
+  visionary VisionaryProfile @relation("VisionaryProfileViews", fields: [visionaryId], references: [id], onDelete: Cascade)
+  investor  User            @relation("InvestorProfileViews", fields: [investorId], references: [id], onDelete: Cascade)
+
+  @@index([visionaryId, createdAt])
+  @@index([investorId, createdAt])
+  @@index([investorId, visionaryId])
+}
+
+// SQLite doesn't support enums, so we use String types instead
+// Valid values:
+// UserRole: "INVESTOR" | "VISIONARY"
+// SwipeDirection: "LIKE" | "DISLIKE"
+// StartupStage: "IDEA" | "MVP" | "TRACTION" | "SCALING"
+// RiskCategory: "HALAL" | "GREY" | "HARAM"
+

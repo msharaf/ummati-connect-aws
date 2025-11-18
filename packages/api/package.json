@@ -8,9 +8,10 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc --project tsconfig.build.json",
     "lint": "eslint \"src/**/*.ts\"",
-    "test": "vitest",
+    "test": "vitest run",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "vitest run ../../tests/e2e/api"
   },
   "dependencies": {
     "@clerk/backend": "^1.0.0",
@@ -23,7 +24,11 @@
   },
   "devDependencies": {
     "@types/node": "^20.9.1",
+    "@types/supertest": "^2.0.16",
     "eslint": "^8.54.0",
+    "jsonwebtoken": "^9.0.2",
+    "@types/jsonwebtoken": "^9.0.5",
+    "supertest": "^6.3.3",
     "tsx": "^3.13.0",
     "typescript": "^5.3.3",
     "vitest": "^0.34.6"

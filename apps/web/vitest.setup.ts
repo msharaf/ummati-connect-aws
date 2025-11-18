@@ -3,16 +3,18 @@ import React from "react";
 import "@testing-library/jest-dom";
 
 // Mock Next.js router
+const mockRouter = {
+  push: vi.fn(),
+  replace: vi.fn(),
+  prefetch: vi.fn(),
+  back: vi.fn(),
+  pathname: "/",
+  query: {},
+  asPath: "/"
+};
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    prefetch: vi.fn(),
-    back: vi.fn(),
-    pathname: "/",
-    query: {},
-    asPath: "/"
-  }),
+  useRouter: () => mockRouter,
   usePathname: () => "/",
   useSearchParams: () => new URLSearchParams()
 }));
@@ -37,20 +39,22 @@ vi.mock("@clerk/nextjs", () => ({
     isLoaded: true,
     userId: null
   })),
-  SignOutButton: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ClerkProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
+  SignOutButton: ({ children }: { children: React.ReactNode }) => React.createElement("div", null, children),
+  ClerkProvider: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children)
 }));
 
 // Mock tRPC
+export const mockUseQuery = vi.fn((_input?: any, _options?: any) => ({
+  data: null,
+  isLoading: false,
+  error: null
+}));
+
 vi.mock("../src/lib/trpc", () => ({
   trpc: {
     user: {
       me: {
-        useQuery: vi.fn(() => ({
-          data: null,
-          isLoading: false,
-          error: null
-        }))
+        useQuery: mockUseQuery
       }
     },
     useUtils: vi.fn(() => ({
@@ -61,6 +65,6 @@ vi.mock("../src/lib/trpc", () => ({
       }
     }))
   },
-  TRPCProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
+  TRPCProvider: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children)
 }));
 

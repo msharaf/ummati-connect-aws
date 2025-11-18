@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { userRouter } from "./user";
 import { prisma } from "@ummati/db";
-import { createCallerFactory } from "@trpc/server";
-import { createContext } from "../context";
 
 // Mock Prisma
 vi.mock("@ummati/db", () => ({
@@ -14,8 +12,6 @@ vi.mock("@ummati/db", () => ({
     }
   }
 }));
-
-const createCaller = createCallerFactory(userRouter);
 
 describe("userRouter", () => {
   const mockCtx = {
@@ -49,7 +45,7 @@ describe("userRouter", () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
 
-      const caller = createCaller(mockCtx);
+      const caller = userRouter.createCaller(mockCtx);
       const result = await caller.me();
 
       expect(result.role).toBe("INVESTOR");
@@ -61,7 +57,7 @@ describe("userRouter", () => {
     it("should return null profile when user does not exist", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
 
-      const caller = createCaller(mockCtx);
+      const caller = userRouter.createCaller(mockCtx);
       const result = await caller.me();
 
       expect(result.role).toBeNull();
@@ -84,7 +80,7 @@ describe("userRouter", () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
 
-      const caller = createCaller(mockCtx);
+      const caller = userRouter.createCaller(mockCtx);
       const result = await caller.me();
 
       expect(result.role).toBe("INVESTOR");
@@ -114,7 +110,7 @@ describe("userRouter", () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
 
-      const caller = createCaller(mockCtx);
+      const caller = userRouter.createCaller(mockCtx);
       const result = await caller.me();
 
       expect(result.role).toBe("VISIONARY");
@@ -145,7 +141,7 @@ describe("userRouter", () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as any);
       vi.mocked(prisma.user.update).mockResolvedValue(updatedUser as any);
 
-      const caller = createCaller(mockCtx);
+      const caller = userRouter.createCaller(mockCtx);
       const result = await caller.setRole({ role: "INVESTOR" });
 
       expect(prisma.user.update).toHaveBeenCalledWith({
@@ -164,7 +160,7 @@ describe("userRouter", () => {
     it("should throw error when user does not exist", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
 
-      const caller = createCaller(mockCtx);
+      const caller = userRouter.createCaller(mockCtx);
 
       await expect(caller.setRole({ role: "INVESTOR" })).rejects.toThrow(
         TRPCError
@@ -195,7 +191,7 @@ describe("userRouter", () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as any);
       vi.mocked(prisma.user.update).mockResolvedValue(updatedUser as any);
 
-      const caller = createCaller(mockCtx);
+      const caller = userRouter.createCaller(mockCtx);
       const result = await caller.setRole({ role: "VISIONARY" });
 
       expect(result.role).toBe("VISIONARY");
@@ -229,7 +225,7 @@ describe("userRouter", () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as any);
       vi.mocked(prisma.user.update).mockResolvedValue(updatedUser as any);
 
-      const caller = createCaller(mockCtx);
+      const caller = userRouter.createCaller(mockCtx);
       const result = await caller.setRole({ role: "INVESTOR" });
 
       expect(result.onboardingComplete).toBe(true);

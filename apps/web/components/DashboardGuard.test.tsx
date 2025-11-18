@@ -1,9 +1,11 @@
+import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { DashboardGuard } from "./DashboardGuard";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { trpc } from "../src/lib/trpc";
+import { mockUseQuery } from "../vitest.setup";
 
 // These are already mocked in vitest.setup.ts, but we override them here for specific tests
 
@@ -18,7 +20,8 @@ describe("DashboardGuard", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useRouter).mockReturnValue(mockRouter as any);
+    // useRouter is already mocked in vitest.setup.ts, just clear the mock functions
+    mockPush.mockClear();
   });
 
   it("should show loading when auth is not loaded", () => {
@@ -28,7 +31,7 @@ describe("DashboardGuard", () => {
       user: null
     } as any);
 
-    vi.mocked(trpc.user.me.useQuery).mockReturnValue({
+    mockUseQuery.mockReturnValue({
       data: null,
       isLoading: false,
       error: null
@@ -51,7 +54,7 @@ describe("DashboardGuard", () => {
       user: null
     } as any);
 
-    vi.mocked(trpc.user.me.useQuery).mockReturnValue({
+    mockUseQuery.mockReturnValue({
       data: null,
       isLoading: false,
       error: null
@@ -77,7 +80,7 @@ describe("DashboardGuard", () => {
       user: { id: "user_123" }
     } as any);
 
-    vi.mocked(trpc.user.me.useQuery).mockReturnValue({
+    mockUseQuery.mockReturnValue({
       data: {
         role: "INVESTOR",
         onboardingComplete: false,
@@ -107,7 +110,7 @@ describe("DashboardGuard", () => {
       user: { id: "user_123" }
     } as any);
 
-    vi.mocked(trpc.user.me.useQuery).mockReturnValue({
+    mockUseQuery.mockReturnValue({
       data: {
         role: "INVESTOR",
         onboardingComplete: true,
@@ -137,7 +140,7 @@ describe("DashboardGuard", () => {
       user: { id: "user_123" }
     } as any);
 
-    vi.mocked(trpc.user.me.useQuery).mockReturnValue({
+    mockUseQuery.mockReturnValue({
       data: null,
       isLoading: true,
       error: null

@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { useUser, SignOutButton } from "@clerk/nextjs";
 import { Button } from "./ui/Button";

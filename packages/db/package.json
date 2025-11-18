@@ -11,8 +11,10 @@
   },
   "scripts": {
     "generate": "prisma generate",
+    "generate:test": "cross-env DATABASE_URL=file:./test.db prisma generate --schema=./prisma/schema.test.prisma",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
+    "migrate:test": "cross-env DATABASE_URL=file:./test.db prisma migrate deploy --schema=./prisma/schema.test.prisma",
     "studio": "prisma studio"
   },
   "dependencies": {
@@ -20,7 +22,12 @@
   },
   "devDependencies": {
     "@types/node": "^20.9.1",
+    "cross-env": "^7.0.3",
     "prisma": "^5.22.0",
     "typescript": "^5.3.3"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^9.2.2",
+    "@types/better-sqlite3": "^7.6.8"
   }
 }

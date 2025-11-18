@@ -29,14 +29,25 @@ describe("createContext", () => {
   });
 
   it("should verify token and set userId when authToken is provided", async () => {
+    // Set CLERK_SECRET_KEY for test
+    const originalSecretKey = process.env.CLERK_SECRET_KEY;
+    process.env.CLERK_SECRET_KEY = "test-secret-key";
+    
     const mockVerifyToken = vi.mocked(verifyToken);
     mockVerifyToken.mockResolvedValue({ sub: "user_456" });
 
     const opts = { authToken: "valid_token_here" };
     const context = await createContext(opts);
 
-    expect(mockVerifyToken).toHaveBeenCalledWith("valid_token_here");
+    expect(mockVerifyToken).toHaveBeenCalledWith("valid_token_here", expect.objectContaining({ secretKey: "test-secret-key" }));
     expect(context.userId).toBe("user_456");
+    
+    // Restore original
+    if (originalSecretKey) {
+      process.env.CLERK_SECRET_KEY = originalSecretKey;
+    } else {
+      delete process.env.CLERK_SECRET_KEY;
+    }
   });
 
   it("should handle invalid token gracefully", async () => {
