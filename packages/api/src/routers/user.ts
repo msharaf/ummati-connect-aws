@@ -56,35 +56,78 @@ export const userRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // Get or create user
-      // First, try to get user from Clerk to get email
       let user = await prisma.user.findUnique({
         where: {
           clerkId: ctx.userId
         }
       });
 
-      // If user doesn't exist, we need to create them
-      // For now, we'll require the user to exist (they should be created during sign-up)
+      // If user doesn't exist, create them from Clerk data
       if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found. Please complete sign-up first."
+        try {
+          // Get user info from Clerk
+          const clerkUser = await ctx.clerk.users.getUser(ctx.userId);
+          const email = clerkUser.emailAddresses[0]?.emailAddress;
+          const name = clerkUser.firstName || clerkUser.lastName 
+            ? `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim()
+            : null;
+
+          if (!email) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "User email not found in Clerk"
+            });
+          }
+
+          // Create user in database
+          user = await prisma.user.create({
+            data: {
+              clerkId: ctx.userId,
+              email,
+              name,
+              role: input.role
+            }
+          });
+        } catch (error) {
+          // If Clerk call fails or user creation fails
+          if (error instanceof TRPCError) {
+            throw error;
+          }
+          console.error("Error creating user:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to create user. Please try again."
+          });
+        }
+      } else {
+        // User exists, just update role
+        user = await prisma.user.update({
+          where: {
+            clerkId: ctx.userId
+          },
+          data: {
+            role: input.role
+          }
         });
       }
 
-      // Update user role
-      const updatedUser = await prisma.user.update({
+      // Get updated user with profiles
+      const updatedUser = await prisma.user.findUnique({
         where: {
           clerkId: ctx.userId
-        },
-        data: {
-          role: input.role
         },
         include: {
           investorProfile: true,
           visionaryProfile: true
         }
       });
+
+      if (!updatedUser) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to retrieve updated user"
+        });
+      }
 
       // Determine onboarding completion
       const onboardingComplete =

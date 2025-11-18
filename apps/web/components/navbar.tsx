@@ -2,8 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { useUser, SignOutButton } from "@clerk/nextjs";
-import { Button } from "./ui/Button";
+import { useUser, useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 const navLinks = [
   { href: "#features", label: "Features" },
@@ -13,6 +13,25 @@ const navLinks = [
 
 export function Navbar() {
   const { isSignedIn, isLoaded } = useUser();
+  const { signOut } = useClerk();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      // Use signOut with redirect option to avoid cache invalidation issues
+      await signOut({ redirectUrl: "/" });
+      // Fallback redirect in case Clerk doesn't handle it
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+      }, 100);
+    } catch (error) {
+      // If signOut fails due to cache invalidation, still redirect
+      console.error("Error signing out:", error);
+      router.push("/");
+      router.refresh();
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-emerald-50/80 backdrop-blur">
@@ -38,11 +57,12 @@ export function Navbar() {
               >
                 Dashboard
               </Link>
-              <SignOutButton>
-                <button className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
-                  Logout
-                </button>
-              </SignOutButton>
+              <button
+                onClick={handleSignOut}
+                className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
+              >
+                Logout
+              </button>
             </>
           ) : (
             <Link

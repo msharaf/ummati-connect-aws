@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "../styles/globals.css";
+import "../lib/clerk-config"; // Import workaround for cache invalidation
 import { ClerkErrorHandler } from "../components/ClerkErrorHandler";
 import { TRPCProvider } from "../src/lib/trpc";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
           <ClerkProvider
             afterSignInUrl="/dashboard"
             afterSignUpUrl="/onboarding/choose-role"
+            signOutRedirectUrl="/"
           >
             <TRPCProvider>{children}</TRPCProvider>
           </ClerkProvider>
