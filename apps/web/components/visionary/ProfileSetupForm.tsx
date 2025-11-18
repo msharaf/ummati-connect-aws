@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { StartupStage } from "@ummati/db";
-import { trpc } from "../../../src/lib/trpc";
+import { trpc } from "../../src/lib/trpc";
 
 interface FormData {
   startupName: string;

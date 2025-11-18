@@ -11,7 +11,9 @@ import {
   Linking
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { trpc } from "../../../src/lib/trpc";
+import { BackButton } from "../../../src/components/BackButton";
 
 export default function VisionaryDetailModal() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -56,25 +58,25 @@ export default function VisionaryDetailModal() {
 
   if (!profile) {
     return (
-      <View className="flex-1 items-center justify-center bg-white px-4">
+      <SafeAreaView className="flex-1 items-center justify-center bg-white px-4">
         <Text className="text-lg font-semibold text-gray-900 mb-2">Profile not found</Text>
-        <TouchableOpacity onPress={() => router.back()} className="mt-4">
-          <Text className="text-emerald-600 font-semibold">Go back</Text>
-        </TouchableOpacity>
-      </View>
+        <View className="mt-4">
+          <BackButton fallbackRoute="/(tabs)/investor" />
+        </View>
+      </SafeAreaView>
     );
   }
 
   const displayName = profile.name || "Unknown Founder";
 
   return (
-    <View className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
       <View className="bg-emerald-600 px-4 py-3 flex-row items-center justify-between">
         <Text className="text-xl font-bold text-white">Profile Details</Text>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text className="text-white text-lg font-semibold">✕</Text>
-        </TouchableOpacity>
+        <View>
+          <BackButton iconColor="#FFFFFF" fallbackRoute="/(tabs)/investor" />
+        </View>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -209,7 +211,7 @@ export default function VisionaryDetailModal() {
           <Text className="text-white font-semibold text-center">Go to Swipe Mode</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

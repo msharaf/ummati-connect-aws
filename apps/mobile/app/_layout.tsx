@@ -3,11 +3,13 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { BackHandler, Platform } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { ClerkProvider, tokenCache } from "../src/lib/clerk";
 import { TRPCProvider, queryClient } from "../src/lib/trpc";
 import { trpc } from "../src/lib/trpc";
 import { usePushToken } from "../hooks/usePushToken";
+import { useBackHandler } from "../src/hooks/useBackHandler";
 
 function RootLayoutNav() {
   // Register push token
@@ -24,6 +26,37 @@ function RootLayoutNav() {
       retry: false
     }
   );
+
+  // Handle Android hardware back button globally
+  useBackHandler(() => {
+    // Only handle back if we're not on the root screens (sign-in, landing)
+    const inAuthGroup = segments[0] === "(auth)";
+    const inTabsGroup = segments[0] === "(tabs)";
+    const isSignIn = segments[1] === "sign-in";
+    
+    // Don't prevent default on sign-in or root screens
+    if (!isLoaded || (!isSignedIn && !isSignIn)) {
+      return false; // Allow default back behavior (exit app or go to previous route)
+    }
+    
+    // For authenticated screens, try to go back
+    if (router.canGoBack()) {
+      router.back();
+      return true; // Prevent default (we handled it)
+    }
+    
+    // If no history, redirect to home
+    if (inTabsGroup) {
+      // Already in tabs, stay here or go to swipe
+      if (segments[1] !== "swipe") {
+        router.replace("/(tabs)/swipe");
+        return true;
+      }
+    }
+    
+    // Default: allow back button to work normally
+    return false;
+  });
 
   useEffect(() => {
     if (!isLoaded) return;

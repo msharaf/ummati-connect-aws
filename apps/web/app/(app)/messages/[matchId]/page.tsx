@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { trpc } from "../../../../src/lib/trpc";
 import { format } from "date-fns";
 import { Avatar } from "../../../../components/Avatar";
+import { BackButtonWeb } from "../../../../components/BackButtonWeb";
 
 interface MessageBubbleProps {
   message: {
@@ -133,15 +134,13 @@ export default function ChatPage() {
 
   if (!matchId) {
     return (
-      <div className="min-h-screen bg-emerald-50 flex items-center justify-center">
+      <div className="min-h-screen bg-emerald-50 flex items-center justify-center relative">
+        <div className="absolute top-4 left-4 z-10">
+          <BackButtonWeb fallbackRoute="/matches" />
+        </div>
         <div className="text-center">
           <p className="text-gray-600 mb-4">Invalid match ID</p>
-          <button
-            onClick={() => router.push("/matches")}
-            className="text-emerald-600 hover:text-emerald-700"
-          >
-            Go back to matches
-          </button>
+          <BackButtonWeb fallbackRoute="/matches" showLabel label="Go back to matches" />
         </div>
       </div>
     );
@@ -151,12 +150,7 @@ export default function ChatPage() {
     <div className="flex flex-col h-full max-w-3xl mx-auto p-4 gap-4 bg-emerald-50 min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 bg-white border border-emerald-200 rounded-xl shadow-sm">
-        <button
-          onClick={() => router.push("/matches")}
-          className="text-emerald-600 hover:text-emerald-700 font-semibold"
-        >
-          ← Back
-        </button>
+        <BackButtonWeb fallbackRoute="/matches" />
         <Avatar src={otherUser?.avatarUrl} name={otherUser?.name} size="md" />
         <div className="flex-1">
           <h1 className="text-xl font-semibold text-gray-900">{displayName}</h1>

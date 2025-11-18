@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { format } from "date-fns";
 import { trpc } from "../../../src/lib/trpc";
 import { Avatar } from "../../../components/Avatar";
+import { BackButton } from "../../../src/components/BackButton";
 
 interface MessageBubbleProps {
   message: {
@@ -151,9 +152,7 @@ export default function ChatScreen() {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
         <Text className="text-gray-600 mb-4">Invalid match ID</Text>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text className="text-emerald-600">Go back</Text>
-        </TouchableOpacity>
+        <BackButton fallbackRoute="/(tabs)/messages" />
       </SafeAreaView>
     );
   }
@@ -167,9 +166,9 @@ export default function ChatScreen() {
       >
         {/* Header */}
         <View className="flex-row items-center px-4 py-3 border-b border-gray-200 bg-white">
-          <TouchableOpacity onPress={() => router.back()} className="mr-3">
-            <Text className="text-emerald-600 text-lg font-semibold">←</Text>
-          </TouchableOpacity>
+          <View className="mr-3">
+            <BackButton fallbackRoute="/(tabs)/messages" />
+          </View>
           <Avatar src={otherUser?.avatarUrl} name={otherUser?.name} size="md" className="mr-3" />
           <View className="flex-1">
             <Text className="text-xl font-semibold text-gray-900">

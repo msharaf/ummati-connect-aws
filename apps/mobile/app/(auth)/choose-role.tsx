@@ -4,7 +4,9 @@ import { useEffect } from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { trpc } from "../../src/lib/trpc";
+import { BackButton } from "../../src/components/BackButton";
 
 export default function ChooseRoleScreen() {
   const router = useRouter();
@@ -63,7 +65,13 @@ export default function ChooseRoleScreen() {
       colors={["#ecfdf5", "#d1fae5", "#a7f3d0"]}
       style={{ flex: 1 }}
     >
-      <View className="flex-1 items-center justify-center p-6">
+      <SafeAreaView className="flex-1">
+        {/* Back Button */}
+        <View className="absolute top-0 left-0 z-10 p-4">
+          <BackButton fallbackRoute="/(auth)/sign-in" />
+        </View>
+        
+        <View className="flex-1 items-center justify-center p-6">
         {/* Header */}
         <View className="items-center mb-12">
           <Text className="text-4xl font-bold text-gray-900 mb-4 text-center">
@@ -168,7 +176,8 @@ export default function ChooseRoleScreen() {
             You can change your role later in your profile settings
           </Text>
         </View>
-      </View>
+        </View>
+      </SafeAreaView>
     </LinearGradient>
   );
 }

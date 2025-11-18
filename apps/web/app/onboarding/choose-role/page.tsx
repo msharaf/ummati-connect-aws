@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "../../../src/lib/trpc";
+import { BackButtonWeb } from "../../../components/BackButtonWeb";
 
 export default function ChooseRolePage() {
   const router = useRouter();
@@ -70,6 +71,9 @@ export default function ChooseRolePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-emerald-50">
         <div className="text-center">
+          <div className="absolute top-4 left-4">
+            <BackButtonWeb fallbackRoute="/" />
+          </div>
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
@@ -90,7 +94,12 @@ export default function ChooseRolePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 flex items-center justify-center p-4 relative">
+      {/* Back Button */}
+      <div className="absolute top-4 left-4 z-10">
+        <BackButtonWeb fallbackRoute="/" />
+      </div>
+      
       <div className="max-w-4xl w-full">
         {/* Header */}
         <div className="text-center mb-12">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "../../../../src/lib/trpc";
+import { BackButtonWeb } from "../../../../components/BackButtonWeb";
 
 export default function InvestorHalalPledgePage() {
   const router = useRouter();
@@ -65,10 +66,15 @@ export default function InvestorHalalPledgePage() {
   }
 
   return (
-    <div className="min-h-screen bg-emerald-50 py-8">
+    <div className="min-h-screen bg-emerald-50 py-8 relative">
+      {/* Back Button */}
+      <div className="absolute top-4 left-4 z-10">
+        <BackButtonWeb fallbackRoute="/investor/dashboard" />
+      </div>
+      
       <div className="max-w-3xl mx-auto p-6">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 mt-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Halal Compliance Pledge
           </h1>

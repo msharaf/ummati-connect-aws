@@ -8,7 +8,9 @@ import {
   ActivityIndicator
 } from "react-native";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { trpc } from "../../../src/lib/trpc";
+import { BackButton } from "../../../src/components/BackButton";
 
 interface FormData {
   minTicketSize: string;
@@ -148,8 +150,13 @@ export default function InvestorSetupScreen() {
   }
 
   return (
-    <View className="flex-1 bg-emerald-50">
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }}>
+    <SafeAreaView className="flex-1 bg-emerald-50">
+      {/* Back Button */}
+      <View className="absolute top-0 left-0 z-10 p-4">
+        <BackButton fallbackRoute="/(tabs)/investor" />
+      </View>
+      
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingTop: 60 }}>
         {/* Header */}
         <View className="mb-6">
           <Text className="text-3xl font-bold text-gray-900 mb-2">
@@ -305,7 +312,7 @@ export default function InvestorSetupScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

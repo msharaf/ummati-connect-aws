@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HalalVerificationForm } from "../../../../components/visionary/HalalVerificationForm";
 import { trpc } from "../../../../src/lib/trpc";
+import { BackButtonWeb } from "../../../../components/BackButtonWeb";
 
 export default function VerifyHalalPage() {
   const router = useRouter();
@@ -35,7 +36,10 @@ export default function VerifyHalalPage() {
   // If already approved, show redirecting message
   if (profile?.isApproved) {
     return (
-      <div className="min-h-screen bg-emerald-50 py-8">
+      <div className="min-h-screen bg-emerald-50 py-8 relative">
+        <div className="absolute top-4 left-4 z-10">
+          <BackButtonWeb fallbackRoute="/visionary/dashboard" />
+        </div>
         <div className="max-w-3xl mx-auto p-6">
           <div className="bg-white rounded-xl shadow-sm p-8 border border-emerald-100 text-center">
             <div className="text-4xl mb-4">✅</div>
@@ -52,7 +56,10 @@ export default function VerifyHalalPage() {
   // If rejected, show rejection message
   if (verificationStatus === "rejected") {
     return (
-      <div className="min-h-screen bg-emerald-50 py-8">
+      <div className="min-h-screen bg-emerald-50 py-8 relative">
+        <div className="absolute top-4 left-4 z-10">
+          <BackButtonWeb fallbackRoute="/visionary/dashboard" />
+        </div>
         <div className="max-w-3xl mx-auto p-6">
           <div className="bg-white rounded-xl shadow-sm p-8 border border-red-200">
             <div className="text-center mb-6">
@@ -89,7 +96,10 @@ export default function VerifyHalalPage() {
   // If flagged, show pending review message
   if (verificationStatus === "flagged") {
     return (
-      <div className="min-h-screen bg-emerald-50 py-8">
+      <div className="min-h-screen bg-emerald-50 py-8 relative">
+        <div className="absolute top-4 left-4 z-10">
+          <BackButtonWeb fallbackRoute="/visionary/dashboard" />
+        </div>
         <div className="max-w-3xl mx-auto p-6">
           <div className="bg-white rounded-xl shadow-sm p-8 border border-amber-200">
             <div className="text-center mb-6">
@@ -126,10 +136,15 @@ export default function VerifyHalalPage() {
 
   // Show the verification form
   return (
-    <div className="min-h-screen bg-emerald-50 py-8">
+    <div className="min-h-screen bg-emerald-50 py-8 relative">
+      {/* Back Button */}
+      <div className="absolute top-4 left-4 z-10">
+        <BackButtonWeb fallbackRoute="/visionary/dashboard" />
+      </div>
+      
       <div className="max-w-3xl mx-auto space-y-6 p-6">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 mt-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Halal Compliance Verification
           </h1>

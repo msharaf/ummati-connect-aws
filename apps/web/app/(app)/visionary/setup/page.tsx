@@ -4,6 +4,7 @@ import { ProfileSetupForm } from "../../../../components/visionary/ProfileSetupF
 import { trpc } from "../../../../src/lib/trpc";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { BackButtonWeb } from "../../../../components/BackButtonWeb";
 
 export default function VisionarySetupPage() {
   const router = useRouter();
@@ -37,10 +38,15 @@ export default function VisionarySetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-emerald-50 py-8">
+    <div className="min-h-screen bg-emerald-50 py-8 relative">
+      {/* Back Button */}
+      <div className="absolute top-4 left-4 z-10">
+        <BackButtonWeb fallbackRoute="/visionary/dashboard" />
+      </div>
+      
       <div className="max-w-3xl mx-auto space-y-6 p-6">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 mt-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             {profile ? "Update Your Profile" : "Create Your Visionary Profile"}
           </h1>

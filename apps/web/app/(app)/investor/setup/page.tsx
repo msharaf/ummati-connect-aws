@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "../../../../src/lib/trpc";
+import { BackButtonWeb } from "../../../../components/BackButtonWeb";
 
 interface FormData {
   minTicketSize: string;
@@ -147,10 +148,15 @@ export default function InvestorSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-emerald-50 py-8">
+    <div className="min-h-screen bg-emerald-50 py-8 relative">
+      {/* Back Button */}
+      <div className="absolute top-4 left-4 z-10">
+        <BackButtonWeb fallbackRoute="/investor/dashboard" />
+      </div>
+      
       <div className="max-w-2xl mx-auto space-y-6 p-6">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 mt-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             {existingProfile ? "Update Your Investor Profile" : "Complete Your Investor Profile"}
           </h1>
