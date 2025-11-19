@@ -7,6 +7,8 @@ import { investorRouter } from "./routers/investor";
 import { visionaryRouter } from "./routers/visionary";
 import { visionaryDashboardRouter } from "./routers/visionaryDashboard";
 import { investorProfileRouter } from "./routers/investorProfile";
+import { messagesRouter } from "./routers/messages";
+import { adminRouter } from "./routers/admin";
 
 // Root router
 export const rootRouter = router({
@@ -17,7 +19,9 @@ export const rootRouter = router({
   investor: investorRouter,
   visionary: visionaryRouter,
   visionaryDashboard: visionaryDashboardRouter,
-  investorProfile: investorProfileRouter
+  investorProfile: investorProfileRouter,
+  messages: messagesRouter,
+  admin: adminRouter
 });
 
 export type AppRouter = typeof rootRouter;

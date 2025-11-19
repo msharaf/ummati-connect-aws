@@ -14,6 +14,7 @@ model User {
   updatedAt  DateTime  @updatedAt
   email      String    @unique
   name       String?
+  fullName   String?   // Primary name field per spec
   role       UserRole?
   avatarUrl  String?
   location   String?
@@ -37,50 +38,77 @@ model User {
 }
 
 model InvestorProfile {
-  id                  String   @id @default(cuid())
-  userId              String   @unique
-  minTicketSize       Int?
-  maxTicketSize       Int?
-  preferredSectors    String[]
-  geoFocus            String?
-  investmentThesis    String?
-  hasAcceptedHalalTerms Boolean @default(false)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  user                User     @relation(fields: [userId], references: [id])
+  id                     String          @id @default(cuid())
+  userId                 String          @unique
+  fullName               String          // Required per spec
+  email                  String          // Required per spec
+  halalScore             Int?            @default(0) // 0-100 scale
+  halalCategory          HalalCategory?  // halal, grey, forbidden
+  minTicketSize          Int?
+  maxTicketSize          Int?
+  investmentPreferences  String?         // JSON or text field for preferences
+  location               String?
+  bio                    String?
+  industriesInterestedIn String[]        @default([])
+  profileComplete        Boolean         @default(false)
+  onboardingComplete     Boolean         @default(false)
+  // Legacy fields - keep for backward compatibility
+  preferredSectors       String[]        @default([])
+  geoFocus               String?
+  investmentThesis       String?
+  hasAcceptedHalalTerms  Boolean         @default(false)
+  halalResponses         Json?           // Store HalalFocus questionnaire responses
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  user                   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([halalCategory])
+  @@index([halalScore])
+  @@index([profileComplete])
+  @@index([onboardingComplete])
 }
 
 model VisionaryProfile {
-  id              String          @id @default(cuid())
-  userId          String          @unique
-  startupName     String
-  tagline          String?         // Short tagline/slogan
-  startupStage    StartupStage
-  sector          String
-  description     String?         // Optional description
-  pitch           String?         // Optional pitch text
-  fundingAsk      Int?
-  location        String?
-  websiteUrl      String?
-  logoUrl         String?         // Startup logo URL
-  teamSize        Int?            // Number of team members
-  halalCategory   String?         // e.g. "Finance", "Food", "SaaS"
-  riskCategory    RiskCategory?   // HALAL, GREY, or HARAM
-  isApproved      Boolean         @default(false)
-  isFlagged       Boolean         @default(false)
-  rejectionReason String?
-  halalResponses  Json?           // Store questionnaire responses for auditing
-  barakahScore    BarakahScore?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  shortlists      Shortlist[]     @relation("VisionaryShortlists")
-  profileViews    ProfileView[]   @relation("VisionaryProfileViews")
+  id                  String          @id @default(cuid())
+  userId              String          @unique
+  fullName            String          // Required per spec (Founder name)
+  email               String          // Required per spec
+  halalScore          Int?            @default(0) // 0-100 scale
+  halalCategory       HalalCategory?  // halal, grey, forbidden
+  startupName         String
+  startupStage        StartupStage
+  industry            String          // Required per spec (renamed from sector)
+  description         String?         // Required per spec
+  fundingNeeded       Int?            // Required per spec (renamed from fundingAsk)
+  location            String?         // Required per spec
+  profileComplete     Boolean         @default(false)
+  onboardingComplete  Boolean         @default(false)
+  halalResponses      Json?           // Store HalalFocus questionnaire responses
+  // Legacy/optional fields
+  tagline             String?
+  pitch               String?
+  sector              String?         // Keep for backward compatibility
+  websiteUrl          String?
+  logoUrl             String?
+  teamSize            Int?
+  riskCategory        RiskCategory?   // Legacy field (maps to halalCategory)
+  isApproved          Boolean         @default(false)
+  isFlagged           Boolean         @default(false)
+  rejectionReason     String?
+  barakahScore        BarakahScore?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shortlists          Shortlist[]     @relation("VisionaryShortlists")
+  profileViews        ProfileView[]   @relation("VisionaryProfileViews")
 
-  @@index([sector])
+  @@index([industry])
   @@index([startupStage])
   @@index([location])
   @@index([halalCategory])
+  @@index([halalScore])
+  @@index([profileComplete])
+  @@index([onboardingComplete])
   @@index([riskCategory])
   @@index([isApproved])
   @@index([isFlagged])
@@ -189,5 +217,11 @@ enum RiskCategory {
   HALAL
   GREY
   HARAM
+}
+
+enum HalalCategory {
+  halal
+  grey
+  forbidden
 }
 

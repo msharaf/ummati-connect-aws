@@ -26,24 +26,25 @@ export const userRouter = router({
     }
 
     // Determine onboarding completion
-    // Onboarding is complete if user has a role AND the corresponding profile
+    // Onboarding is complete if user has a role AND the corresponding profile is complete
     const onboardingComplete =
       user.role !== null &&
-      ((user.role === "INVESTOR" && user.investorProfile !== null) ||
-        (user.role === "VISIONARY" && user.visionaryProfile !== null));
+      ((user.role === "INVESTOR" && user.investorProfile?.onboardingComplete) ||
+        (user.role === "VISIONARY" && user.visionaryProfile?.onboardingComplete));
 
     return {
       role: user.role,
       onboardingComplete,
-      profile: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        avatarUrl: user.avatarUrl,
-        location: user.location,
-        investorProfile: user.investorProfile,
-        visionaryProfile: user.visionaryProfile
-      }
+        profile: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          fullName: user.fullName || user.name,
+          avatarUrl: user.avatarUrl,
+          location: user.location,
+          investorProfile: user.investorProfile,
+          visionaryProfile: user.visionaryProfile
+        }
     };
   }),
 
@@ -68,9 +69,10 @@ export const userRouter = router({
           // Get user info from Clerk
           const clerkUser = await ctx.clerk.users.getUser(ctx.userId);
           const email = clerkUser.emailAddresses[0]?.emailAddress;
-          const name = clerkUser.firstName || clerkUser.lastName 
+          const fullName = clerkUser.firstName || clerkUser.lastName 
             ? `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim()
             : null;
+          const name = fullName; // Legacy field
 
           if (!email) {
             throw new TRPCError({
@@ -85,6 +87,7 @@ export const userRouter = router({
               clerkId: ctx.userId,
               email,
               name,
+              fullName,
               role: input.role
             }
           });
@@ -132,8 +135,8 @@ export const userRouter = router({
       // Determine onboarding completion
       const onboardingComplete =
         updatedUser.role !== null &&
-        ((updatedUser.role === "INVESTOR" && updatedUser.investorProfile !== null) ||
-          (updatedUser.role === "VISIONARY" && updatedUser.visionaryProfile !== null));
+        ((updatedUser.role === "INVESTOR" && updatedUser.investorProfile?.onboardingComplete) ||
+          (updatedUser.role === "VISIONARY" && updatedUser.visionaryProfile?.onboardingComplete));
 
       return {
         role: updatedUser.role,
