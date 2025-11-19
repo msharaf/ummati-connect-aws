@@ -30,18 +30,18 @@ The project already has `.env` files created. You just need to add your **Clerk 
 
 **`apps/web/.env.local`** (already exists, just update the keys):
 ```env
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_aHVtb3JvdXMtdnVsdHVyZS0zNC5jbGVyay5hY2NvdW50cy5kZXYk
-CLERK_SECRET_KEY=sk_test_JNPzDSzaZWfgonZC8YAFhrH5tdv6ELTMFmIgS6kX7Q
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
 ```
 
 **`apps/mobile/.env`** (already exists, just update the key):
 ```env
-CLERK_PUBLISHABLE_KEY=pk_test_aHVtb3JvdXMtdnVsdHVyZS0zNC5jbGVyay5hY2NvdW50cy5kZXYk
+CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
 ```
 
 **`packages/api/.env`** (already exists, just update the key and add DATABASE_URL):
 ```env
-CLERK_SECRET_KEY=sk_test_JNPzDSzaZWfgonZC8YAFhrH5tdv6ELTMFmIgS6kX7Q
+CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ummati?schema=public
 ```
 
