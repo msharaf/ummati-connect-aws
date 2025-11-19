@@ -22,10 +22,7 @@
       ]
     },
     "types": [
-      "node",
-      "next",
-      "next/image-types",
-      "next/navigation"
+      "node"
     ],
     "lib": [
       "dom",
