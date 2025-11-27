@@ -1,6 +1,6 @@
 "use client";
 
-import { trpc } from "../../../src/lib/trpc";
+import { trpc } from "../../src/lib/trpc";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 

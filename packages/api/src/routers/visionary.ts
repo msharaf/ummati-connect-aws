@@ -333,12 +333,22 @@ export const visionaryRouter = router({
       };
     }),
 
-  // Verify halal compliance (legacy - use submitHalalFocus instead)
+  // Verify halal compliance - processes detailed questionnaire form
   verifyHalalCompliance: protectedProcedure
     .input(
       z.object({
-        halalResponses: z.record(z.any()).optional(),
-        riskCategory: z.nativeEnum(RiskCategory).optional()
+        industry: z.string().min(1),
+        responses: z.object({
+          q1: z.string().optional(),
+          q2: z.string().optional(),
+          q3: z.boolean().optional(),
+          q4: z.string().optional(),
+          q5: z.string().optional(),
+          q6: z.string().optional(),
+          q7: z.boolean().optional(),
+          q8: z.string().optional(),
+          haramCategories: z.array(z.string()).optional()
+        })
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -347,22 +357,114 @@ export const visionaryRouter = router({
         include: { visionaryProfile: true }
       });
 
-      if (!user || !user.visionaryProfile) {
+      if (!user) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Visionary profile not found"
+          message: "User not found"
         });
       }
 
-      await prisma.visionaryProfile.update({
+      // Determine risk category based on haram categories and industry
+      let riskCategory: RiskCategory = RiskCategory.HALAL;
+      let halalCategory: "halal" | "grey" | "forbidden" = "halal";
+      let isFlagged = false;
+      let isApproved = false;
+      let rejectionReason: string | null = null;
+      let halalScore = 100;
+
+      // Check if haram categories are selected (automatic rejection)
+      if (input.responses.haramCategories && input.responses.haramCategories.length > 0) {
+        riskCategory = RiskCategory.HARAM;
+        halalCategory = "forbidden";
+        halalScore = 0;
+        rejectionReason = `Industry involves prohibited categories: ${input.responses.haramCategories.join(", ")}`;
+      } else {
+        // Check for grey area industries
+        const greyAreaKeywords = ["fintech", "crypto", "ai", "automation", "marketplace", "social"];
+        const industryLower = input.industry.toLowerCase();
+        const isGreyArea = greyAreaKeywords.some(keyword => industryLower.includes(keyword));
+
+        // Check for interest/riba in responses
+        const hasInterestConcerns = 
+          input.responses.q4?.toLowerCase().includes("interest") ||
+          input.responses.q4?.toLowerCase().includes("riba") ||
+          input.responses.q5?.toLowerCase().includes("interest") ||
+          input.responses.q5?.toLowerCase().includes("riba");
+
+        // Check for high-risk indicators
+        const hasRiskFactors = input.responses.q7 === true || hasInterestConcerns;
+
+        if (hasInterestConcerns || (input.responses.q4 && input.responses.q4.toLowerCase().includes("yes"))) {
+          riskCategory = RiskCategory.HARAM;
+          halalCategory = "forbidden";
+          halalScore = 0;
+          rejectionReason = "Industry involves interest-based revenue (Riba)";
+        } else if (isGreyArea || hasRiskFactors) {
+          riskCategory = RiskCategory.GREY;
+          halalCategory = "grey";
+          halalScore = 60; // Grey area score
+          isFlagged = true; // Needs manual review
+        } else {
+          riskCategory = RiskCategory.HALAL;
+          halalCategory = "halal";
+          halalScore = 85; // Good halal score
+          isApproved = true; // Auto-approve clear halal cases
+        }
+      }
+
+      // Prepare full responses object to store
+      const fullResponses = {
+        industry: input.industry,
+        ...input.responses
+      };
+
+      // Create or update visionary profile
+      await prisma.visionaryProfile.upsert({
         where: { userId: user.id },
-        data: {
-          halalResponses: input.halalResponses || null,
-          riskCategory: input.riskCategory || null
+        update: {
+          industry: input.industry,
+          halalResponses: fullResponses as any,
+          riskCategory,
+          halalCategory: halalCategory as any,
+          halalScore,
+          isFlagged,
+          isApproved,
+          rejectionReason
+        },
+        create: {
+          userId: user.id,
+          fullName: user.fullName || user.name || "",
+          email: user.email,
+          startupName: "Temporary", // Will be updated later
+          startupStage: StartupStage.IDEA,
+          industry: input.industry,
+          halalResponses: fullResponses as any,
+          riskCategory,
+          halalCategory: halalCategory as any,
+          halalScore,
+          isFlagged,
+          isApproved,
+          rejectionReason
         }
       });
 
-      return { success: true };
+      // Return status that matches frontend expectations
+      let status: "approved" | "flagged" | "rejected";
+      if (riskCategory === RiskCategory.HARAM) {
+        status = "rejected";
+      } else if (isFlagged || riskCategory === RiskCategory.GREY) {
+        status = "flagged";
+      } else {
+        status = "approved";
+      }
+
+      return {
+        status,
+        riskCategory,
+        halalCategory,
+        halalScore,
+        rejectionReason
+      };
     })
 });
 

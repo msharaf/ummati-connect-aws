@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { trpc } from "../../../src/lib/trpc";
+import { trpc } from "../../src/lib/trpc";
 
 export function OverviewHeader() {
   const { data: profile, isLoading: isLoadingProfile } =

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { trpc } from "../../../src/lib/trpc";
+import { trpc } from "../../src/lib/trpc";
 
 interface QuestionnaireData {
   industry: string;
@@ -158,6 +158,15 @@ export function HalalVerificationForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Error Display */}
+      {mutation.isError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm text-red-700">
+            <strong>Error:</strong> {mutation.error?.message || "Failed to submit verification. Please try again."}
+          </p>
+        </div>
+      )}
+      
       {/* Section A: Industry Selection */}
       <div className="bg-white rounded-xl shadow-sm p-6 border border-emerald-100">
         <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-2 border-b border-emerald-200">

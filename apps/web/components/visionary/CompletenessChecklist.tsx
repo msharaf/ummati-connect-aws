@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { trpc } from "../../../src/lib/trpc";
+import { trpc } from "../../src/lib/trpc";
 
 const fieldLabels: Record<string, string> = {
   startupName: "Startup Name",

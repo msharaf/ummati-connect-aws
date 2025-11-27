@@ -1,6 +1,6 @@
 "use client";
 
-import { trpc } from "../../../src/lib/trpc";
+import { trpc } from "../../src/lib/trpc";
 
 interface MetricCardProps {
   icon: string;
