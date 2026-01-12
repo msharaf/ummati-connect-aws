@@ -4,8 +4,13 @@ module.exports = function (api) {
     presets: ["babel-preset-expo"],
     plugins: [
       "expo-router/babel",
-      "react-native-reanimated/plugin",
-      "nativewind/babel"
+      [
+        "nativewind/babel",
+        {
+          tailwindConfig: "./tailwind.config.js"
+        }
+      ],
+      "react-native-reanimated/plugin"
     ]
   };
 };
