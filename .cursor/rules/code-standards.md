@@ -1,0 +1,40 @@
+# Code Standards
+
+## TypeScript
+- Strict mode enabled
+- Use TypeScript for all new files (no JavaScript)
+- Follow module boundaries - no deep imports across packages
+- Use workspace packages: `@ummati/api`, `@ummati/db`, `@ummati/config/*`
+- Extend base config from `tsconfig.base.json`
+
+## Code Style
+- Keep changes small and tested
+- Follow existing patterns in the codebase
+- Use consistent naming conventions (camelCase for variables/functions, PascalCase for components)
+- Prefer functional components with hooks
+- Use async/await over promises
+
+## File Naming
+- Components: PascalCase (e.g., `UserProfile.tsx`)
+- Utilities: camelCase (e.g., `formatDate.ts`)
+- Test files: `*.test.ts` or `*.test.tsx`
+- Type files: `*.types.ts` or inline in the file
+- Config files: lowercase with extension (e.g., `tailwind.config.ts`)
+
+## Imports
+- Use absolute imports for workspace packages: `@ummati/api`, `@ummati/db`
+- Use relative imports for local files: `./components/Button`
+- Group imports: external packages, workspace packages, relative imports
+- Use type-only imports when possible: `import type { User } from '@ummati/db'`
+
+## Error Handling
+- Use try/catch for async operations
+- Return proper error types (TRPCError for API, Error for utilities)
+- Provide meaningful error messages
+- Log errors appropriately (don't log sensitive data)
+
+## Documentation
+- Write clear JSDoc comments for complex functions
+- Update README/docs when adding features
+- Keep code self-documenting with good variable/function names
+- Document breaking changes in commit messages

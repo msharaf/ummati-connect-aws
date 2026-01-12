@@ -1,0 +1,51 @@
+# Project Structure
+
+## Monorepo Setup
+- Monorepo using pnpm workspaces and Turbo
+- Apps: `apps/web` (Next.js), `apps/mobile` (Expo)
+- Packages: `packages/api` (tRPC), `packages/db` (Prisma), `packages/config`, `packages/notifications`
+- Use shared TypeScript configs from `@ummati/config`
+
+## Monorepo Practices
+- Use `pnpm --filter <package>` to run commands in specific packages
+- Use workspace protocol for internal dependencies: `"@ummati/api": "workspace:*"`
+- Don't break module boundaries - packages should only expose what's in their exports
+- Build order matters - respect `dependsOn` in turbo.json
+
+## Database & Prisma
+- Use Prisma for all database operations
+- Generate Prisma client after schema changes: `pnpm --filter @ummati/db exec prisma generate`
+- Run migrations: `pnpm --filter @ummati/db exec prisma migrate dev`
+- Never modify Prisma Client directly
+- Use type-safe queries with Prisma
+- Use `@ummati/db` package for database access
+
+## API (tRPC)
+- All API routes in `packages/api/src/routers/`
+- Use `protectedProcedure` for authenticated routes
+- Use `publicProcedure` for unauthenticated routes
+- Validate inputs with Zod schemas
+- Return proper error types (TRPCError)
+- Use `@ummati/api` package type exports for AppRouter types
+
+## Frontend (Next.js)
+- Use App Router (not Pages Router)
+- Client components: `"use client"` directive
+- Server components by default
+- Use tRPC React hooks: `trpc.*.useQuery()`, `trpc.*.useMutation()`
+- Use Tailwind CSS for styling
+- Follow Next.js 14 conventions
+
+## Mobile (Expo)
+- Use Expo Router for navigation
+- Use NativeWind for styling (Tailwind for React Native)
+- Use `expo-constants` for environment variables
+- Client-side components only (no SSR)
+- Use tRPC React hooks same as web
+
+## Authentication
+- Use Clerk for authentication
+- Never hardcode auth tokens
+- Use `@clerk/nextjs` for web, `@clerk/clerk-expo` for mobile
+- Sync users from Clerk to database when needed
+- Use `ctx.userId` from tRPC context for authenticated routes

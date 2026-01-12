@@ -1,0 +1,50 @@
+# Workflow & Process
+
+## Git Workflow
+- Branch from `develop` for features: `feature/<name>`
+- Use `fix/<name>` for bug fixes
+- Use `chore/<name>` for maintenance
+- Keep branches short-lived (<1 week)
+- Write clear commit messages
+- Open PRs to `develop`, not `main`
+
+## Environment Variables
+- Use `.env.local` for web app (gitignored)
+- Use `.env` for mobile app (gitignored)
+- Use `.env` for API package (gitignored)
+- Never commit secrets or API keys
+- Use `EXPO_PUBLIC_*` prefix for Expo public env vars
+- Use `NEXT_PUBLIC_*` prefix for Next.js public env vars
+
+## Testing
+- Use Vitest for unit tests
+- Test files: `*.test.ts` or `*.test.tsx`
+- Mock external dependencies (Prisma, Clerk, Next.js router)
+- Test behavior, not implementation
+- Aim for 80%+ coverage on API routers, 70%+ on components
+- Use `pnpm test` to run all tests
+
+## Performance
+- Use React Query caching effectively
+- Lazy load heavy components
+- Optimize images (Next.js Image component)
+- Use Turbo build caching
+- Minimize bundle size
+
+## Security
+- Validate all user inputs
+- Never trust client-side data
+- Use parameterized queries (Prisma does this automatically)
+- Sanitize user-generated content
+- Follow OWASP best practices
+
+## When Making Changes
+
+1. **Write a brief plan** (bullet points) before editing
+2. Run linting: `pnpm lint`
+3. Run tests: `pnpm test`
+4. Check TypeScript: `tsc --noEmit`
+5. Test locally before committing
+6. Write tests for new features (unit + integration as needed)
+7. Update documentation if needed
+8. Provide PR summary: what changed, why, and key edge cases
