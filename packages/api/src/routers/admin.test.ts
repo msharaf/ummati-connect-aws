@@ -27,12 +27,12 @@ vi.mock("@ummati/db", () => ({
 describe("adminRouter", () => {
   const mockAdminCtx = {
     userId: "admin_clerk_123",
-    clerk: {}
+    clerk: {} as any
   };
 
   const mockUserCtx = {
     userId: "user_clerk_123",
-    clerk: {}
+    clerk: {} as any
   };
 
   beforeEach(() => {
