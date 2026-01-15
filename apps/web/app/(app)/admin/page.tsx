@@ -30,14 +30,16 @@ export default function AdminPage() {
     return null;
   }
 
-  // Fetch users
+  // Fetch users (with pagination)
   const {
-    data: users,
+    data: usersData,
     isLoading: isLoadingUsers,
     refetch: refetchUsers
-  } = trpc.admin.getAllUsers.useQuery(undefined, {
+  } = trpc.admin.getAllUsers.useQuery({ limit: 100 }, {
     enabled: adminCheck?.isAdmin === true
   });
+
+  const users = usersData?.users ?? [];
 
   // Fetch reports
   const { data: reports } = trpc.admin.getReports.useQuery(undefined, {

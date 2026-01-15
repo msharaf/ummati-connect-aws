@@ -128,10 +128,11 @@ describe("adminRouter", () => {
       const caller = adminRouter.createCaller(mockAdminCtx);
       const result = await caller.getAllUsers();
 
-      expect(result).toHaveLength(2);
-      expect(result[0].email).toBe("user1@example.com");
-      expect(result[0].investorProfile).toBeDefined();
-      expect(result[1].visionaryProfile).toBeDefined();
+      expect(result.users).toHaveLength(2);
+      expect(result.users[0].email).toBe("user1@example.com");
+      expect(result.users[0].investorProfile).toBeDefined();
+      expect(result.users[1].visionaryProfile).toBeDefined();
+      expect(result.nextCursor).toBeUndefined(); // No more pages
     });
 
     it("should throw FORBIDDEN when user is not admin", async () => {

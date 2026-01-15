@@ -92,7 +92,8 @@ export async function getCurrentUserProfile(
       onboardingComplete
     };
   } catch (error) {
-    console.error("Error fetching user profile:", error);
+    // Log error without exposing PII
+    console.error("Error fetching user profile:", error instanceof Error ? error.message : "Unknown error");
     return null;
   }
 }

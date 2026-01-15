@@ -101,7 +101,8 @@ export const userRouter = router({
           if (error instanceof TRPCError) {
             throw error;
           }
-          console.error("Error creating user:", error);
+          // Log error without exposing PII
+          console.error("Error creating user:", error instanceof Error ? error.message : "Unknown error");
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to create user. Please try again."

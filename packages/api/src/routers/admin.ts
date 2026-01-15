@@ -17,28 +17,48 @@ export const adminRouter = router({
   }),
 
   // Get all users (admin only)
-  getAllUsers: protectedProcedure.query(async ({ ctx }) => {
-    // Verify admin
-    const user = await prisma.user.findUnique({
-      where: { clerkId: ctx.userId }
-    });
-
-    if (!user || !user.isAdmin) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Admin access required"
+  getAllUsers: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(500).default(100),
+        cursor: z.string().optional()
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      // Verify admin
+      const user = await prisma.user.findUnique({
+        where: { clerkId: ctx.userId }
       });
-    }
 
-    const users = await prisma.user.findMany({
-      include: {
-        investorProfile: true,
-        visionaryProfile: true
-      },
-      orderBy: { createdAt: "desc" }
-    });
+      if (!user || !user.isAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin access required"
+        });
+      }
 
-    return users.map(u => ({
+      const limit = input?.limit ?? 100;
+      const users = await prisma.user.findMany({
+        include: {
+          investorProfile: true,
+          visionaryProfile: true
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit + 1,
+        ...(input?.cursor && {
+          skip: 1,
+          cursor: { id: input.cursor }
+        })
+      });
+
+      let nextCursor: string | undefined = undefined;
+      if (users.length > limit) {
+        const nextItem = users.pop();
+        nextCursor = nextItem?.id;
+      }
+
+    return {
+      users: users.map(u => ({
       id: u.id,
       clerkId: u.clerkId,
       email: u.email,
@@ -65,7 +85,9 @@ export const adminRouter = router({
             isFlagged: u.visionaryProfile.isFlagged
           }
         : null
-    }));
+      })),
+      nextCursor
+    };
   }),
 
   // Get user by ID (admin only)

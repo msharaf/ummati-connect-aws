@@ -167,43 +167,52 @@ export const matchmakingRouter = router({
     }),
 
   // Get existing matches for the current user
-  getMatches: protectedProcedure.query(async ({ ctx }) => {
-    const user = await prisma.user.findUnique({
-      where: { clerkId: ctx.userId }
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "User not found"
+  getMatches: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(50)
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const user = await prisma.user.findUnique({
+        where: { clerkId: ctx.userId }
       });
-    }
 
-    // Get all matches where user is involved
-    const matches = await prisma.match.findMany({
-      where: {
-        OR: [{ userAId: user.id }, { userBId: user.id }]
-      },
-      include: {
-        userA: {
-          include: {
-            investorProfile: true,
-            visionaryProfile: true
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found"
+        });
+      }
+
+      const limit = input?.limit ?? 50;
+
+      // Get matches where user is involved with pagination
+      const matches = await prisma.match.findMany({
+        where: {
+          OR: [{ userAId: user.id }, { userBId: user.id }]
+        },
+        include: {
+          userA: {
+            include: {
+              investorProfile: true,
+              visionaryProfile: true
+            }
+          },
+          userB: {
+            include: {
+              investorProfile: true,
+              visionaryProfile: true
+            }
+          },
+          messages: {
+            take: 1,
+            orderBy: { createdAt: "desc" }
           }
         },
-        userB: {
-          include: {
-            investorProfile: true,
-            visionaryProfile: true
-          }
-        },
-        messages: {
-          take: 1,
-          orderBy: { createdAt: "desc" }
-        }
-      },
-      orderBy: { createdAt: "desc" }
-    });
+        take: limit,
+        orderBy: { createdAt: "desc" }
+      });
 
     // Map matches to include the other user's profile
     return matches.map(match => {

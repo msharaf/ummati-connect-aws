@@ -23,7 +23,8 @@ export async function createContext(opts: CreateContextOptions = {}) {
       userId = payload.sub;
     } catch (error) {
       // Token invalid, userId remains null
-      console.error("Failed to verify auth token:", error);
+      // Log error without exposing token details
+      console.error("Failed to verify auth token:", error instanceof Error ? error.message : "Unknown error");
     }
   }
 

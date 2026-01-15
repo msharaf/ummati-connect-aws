@@ -175,7 +175,7 @@ export const investorProfileRouter = router({
 
       // Determine if profile is complete (all required fields filled)
       const profileComplete = !!(
-        input.fullName || user.investorProfile?.fullName &&
+        (input.fullName || user.investorProfile?.fullName) &&
         (input.minTicketSize !== undefined || user.investorProfile?.minTicketSize !== null) &&
         (input.maxTicketSize !== undefined || user.investorProfile?.maxTicketSize !== null) &&
         (input.location !== undefined || user.investorProfile?.location) &&

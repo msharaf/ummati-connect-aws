@@ -4,6 +4,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { StartupStage, RiskCategory } from "@ummati/db";
 import { calculateHalalFocus, getHalalFocusQuestionnaire, type HalalFocusResponse } from "../lib/halalfocus";
+import { calculateHalalVerification } from "../lib/halal-verification";
 
 export const visionaryRouter = router({
   // Get current visionary's profile
@@ -372,53 +373,13 @@ export const visionaryRouter = router({
         });
       }
 
-      // Determine risk category based on haram categories and industry
-      let riskCategory: RiskCategory = RiskCategory.HALAL;
-      let halalCategory: "halal" | "grey" | "forbidden" = "halal";
-      let isFlagged = false;
-      let isApproved = false;
-      let rejectionReason: string | null = null;
-      let halalScore = 100;
+      // Calculate halal verification status
+      const verification = calculateHalalVerification({
+        industry: input.industry,
+        responses: input.responses
+      });
 
-      // Check if haram categories are selected (automatic rejection)
-      if (input.responses.haramCategories && input.responses.haramCategories.length > 0) {
-        riskCategory = RiskCategory.HARAM;
-        halalCategory = "forbidden";
-        halalScore = 0;
-        rejectionReason = `Industry involves prohibited categories: ${input.responses.haramCategories.join(", ")}`;
-      } else {
-        // Check for grey area industries
-        const greyAreaKeywords = ["fintech", "crypto", "ai", "automation", "marketplace", "social"];
-        const industryLower = input.industry.toLowerCase();
-        const isGreyArea = greyAreaKeywords.some(keyword => industryLower.includes(keyword));
-
-        // Check for interest/riba in responses
-        const hasInterestConcerns = 
-          input.responses.q4?.toLowerCase().includes("interest") ||
-          input.responses.q4?.toLowerCase().includes("riba") ||
-          input.responses.q5?.toLowerCase().includes("interest") ||
-          input.responses.q5?.toLowerCase().includes("riba");
-
-        // Check for high-risk indicators
-        const hasRiskFactors = input.responses.q7 === true || hasInterestConcerns;
-
-        if (hasInterestConcerns || (input.responses.q4 && input.responses.q4.toLowerCase().includes("yes"))) {
-          riskCategory = RiskCategory.HARAM;
-          halalCategory = "forbidden";
-          halalScore = 0;
-          rejectionReason = "Industry involves interest-based revenue (Riba)";
-        } else if (isGreyArea || hasRiskFactors) {
-          riskCategory = RiskCategory.GREY;
-          halalCategory = "grey";
-          halalScore = 60; // Grey area score
-          isFlagged = true; // Needs manual review
-        } else {
-          riskCategory = RiskCategory.HALAL;
-          halalCategory = "halal";
-          halalScore = 85; // Good halal score
-          isApproved = true; // Auto-approve clear halal cases
-        }
-      }
+      let { riskCategory, halalCategory, halalScore, isFlagged, isApproved, rejectionReason } = verification;
 
       // ⚠️ DEVELOPMENT ONLY: Auto-approve all non-HARAM submissions
       // TODO: Remove this before production - restore manual review for flagged/grey cases
