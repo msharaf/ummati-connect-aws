@@ -114,6 +114,9 @@ export const visionaryRouter = router({
       const onboardingComplete = profileComplete && hasHalalFocus;
 
       // Update or create visionary profile
+      // Map fundingAsk to fundingNeeded for backward compatibility (fundingAsk is legacy field)
+      const fundingValue = input.fundingNeeded !== undefined ? input.fundingNeeded : (input.fundingAsk !== undefined ? input.fundingAsk : undefined);
+
       const profile = await prisma.visionaryProfile.upsert({
         where: { userId: user.id },
         update: {
@@ -125,8 +128,7 @@ export const visionaryRouter = router({
           sector: input.sector !== undefined ? input.sector : undefined, // Legacy
           description: input.description !== undefined ? input.description : undefined,
           pitch: input.pitch !== undefined ? input.pitch : undefined,
-          fundingNeeded: input.fundingNeeded !== undefined ? input.fundingNeeded : (input.fundingAsk !== undefined ? input.fundingAsk : undefined),
-          fundingAsk: input.fundingAsk !== undefined ? input.fundingAsk : undefined, // Legacy
+          fundingNeeded: fundingValue,
           location: input.location !== undefined ? input.location : undefined,
           websiteUrl: input.websiteUrl !== undefined ? input.websiteUrl : undefined,
           logoUrl: input.logoUrl !== undefined ? input.logoUrl : undefined,
@@ -145,8 +147,7 @@ export const visionaryRouter = router({
           sector: input.sector || industry, // Legacy
           description: input.description || null,
           pitch: input.pitch || null,
-          fundingNeeded: input.fundingNeeded || input.fundingAsk || null,
-          fundingAsk: input.fundingAsk || null, // Legacy
+          fundingNeeded: fundingValue ?? null,
           location: input.location || null,
           websiteUrl: input.websiteUrl || null,
           logoUrl: input.logoUrl || null,
@@ -198,6 +199,9 @@ export const visionaryRouter = router({
         });
       }
 
+      // Map fundingAsk to fundingNeeded for backward compatibility (fundingAsk is legacy field)
+      const fundingValue = input.fundingAsk ?? null;
+
       const profile = await prisma.visionaryProfile.upsert({
         where: { userId: user.id },
         update: {
@@ -205,9 +209,10 @@ export const visionaryRouter = router({
           tagline: input.tagline || null,
           startupStage: input.startupStage,
           sector: input.sector,
+          industry: input.sector, // Set industry from sector for consistency
           description: input.description || null,
           pitch: input.pitch || null,
-          fundingAsk: input.fundingAsk || null,
+          fundingNeeded: fundingValue,
           location: input.location || null,
           websiteUrl: input.websiteUrl || null,
           logoUrl: input.logoUrl || null,
@@ -216,13 +221,16 @@ export const visionaryRouter = router({
         },
         create: {
           userId: user.id,
+          fullName: user.fullName || user.name || "",
+          email: user.email,
           startupName: input.startupName,
           tagline: input.tagline || null,
           startupStage: input.startupStage,
           sector: input.sector,
+          industry: input.sector, // Set industry from sector for consistency
           description: input.description || null,
           pitch: input.pitch || null,
-          fundingAsk: input.fundingAsk || null,
+          fundingNeeded: fundingValue,
           location: input.location || null,
           websiteUrl: input.websiteUrl || null,
           logoUrl: input.logoUrl || null,

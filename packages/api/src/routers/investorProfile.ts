@@ -149,12 +149,27 @@ export const investorProfileRouter = router({
       }
 
       // Check if HalalFocus is completed (required before profile can be complete)
-      const hasHalalFocus = user.investorProfile?.halalCategory !== null;
+      // ⚠️ DEVELOPMENT ONLY: Also accept hasAcceptedHalalTerms as sufficient
+      // TODO: Remove this before production - require halalCategory to be set
+      const hasHalalFocus = user.investorProfile?.halalCategory !== null || 
+                           (user.investorProfile?.hasAcceptedHalalTerms === true);
 
       if (!hasHalalFocus) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
           message: "Complete HalalFocus verification first"
+        });
+      }
+
+      // If halalCategory is not set but hasAcceptedHalalTerms is true, set default values
+      // This handles legacy profiles that accepted terms before halalCategory was required
+      if (user.investorProfile?.halalCategory === null && user.investorProfile?.hasAcceptedHalalTerms === true) {
+        await prisma.investorProfile.update({
+          where: { userId: user.id },
+          data: {
+            halalCategory: "halal",
+            halalScore: 85
+          }
         });
       }
 

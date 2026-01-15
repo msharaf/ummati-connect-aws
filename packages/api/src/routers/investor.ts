@@ -284,19 +284,36 @@ export const investorRouter = router({
       });
     }
 
+    // ⚠️ DEVELOPMENT ONLY: Set default halalCategory when accepting terms
+    // This allows investors to proceed without completing full HalalFocus questionnaire
+    // TODO: Remove this before production - require full HalalFocus submission
+    const defaultHalalCategory = "halal" as const;
+    const defaultHalalScore = 85;
+
     if (!user.investorProfile) {
       // Create investor profile if it doesn't exist
       await prisma.investorProfile.create({
         data: {
           userId: user.id,
-          hasAcceptedHalalTerms: true
+          fullName: user.fullName || user.name || "",
+          email: user.email,
+          hasAcceptedHalalTerms: true,
+          halalCategory: defaultHalalCategory,
+          halalScore: defaultHalalScore
         }
       });
     } else {
       // Update existing profile
       await prisma.investorProfile.update({
         where: { userId: user.id },
-        data: { hasAcceptedHalalTerms: true }
+        data: { 
+          hasAcceptedHalalTerms: true,
+          // Only set halalCategory if not already set (don't overwrite existing HalalFocus results)
+          ...(user.investorProfile.halalCategory === null ? {
+            halalCategory: defaultHalalCategory,
+            halalScore: defaultHalalScore
+          } : {})
+        }
       });
     }
 
