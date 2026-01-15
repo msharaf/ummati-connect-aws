@@ -20,6 +20,9 @@ export default function DashboardPage() {
     { enabled: !!userData?.profile, refetchInterval: 1000 * 30 }
   );
 
+  // Extract first name from full name
+  const firstName = userData?.profile?.name?.split(" ")[0] ?? "User";
+
   return (
     <DashboardGuard>
 
@@ -30,7 +33,7 @@ export default function DashboardPage() {
               Dashboard
             </span>
             <h1 className="text-3xl font-semibold text-charcoal">
-              As-salaam, {userData?.profile?.name ?? "User"}
+              As-salaamu A'laikum, {firstName}
             </h1>
           <p className="text-sm text-charcoal/70">
             Discover visionaries aligned with your halal mandates. Swipe to
@@ -60,7 +63,7 @@ export default function DashboardPage() {
             ))}
             {!recommendations?.recommendations?.length && (
               <div className="rounded-2xl border border-dashed border-emerald-200 bg-white/70 p-6 text-sm text-charcoal/60">
-                {recommendations?.message || "No recommendations yet. Complete your profile and check again soon."}
+                No recommendations yet. Complete your profile and check again soon.
               </div>
             )}
           </div>
@@ -72,11 +75,8 @@ export default function DashboardPage() {
             Mutual right swipes appear here with quick access to diligence tools.
           </p>
           <div className="mt-6 space-y-4">
-            {matches?.matches?.map((match: any) => {
-              const counterpart =
-                match.investorId === userData?.profile?.id
-                  ? match.visionary
-                  : match.investor;
+            {matches?.map((match: any) => {
+              const counterpart = match.otherUser;
               return (
                 <div
                   key={match.id}
@@ -84,13 +84,13 @@ export default function DashboardPage() {
                 >
                   <div>
                     <p className="text-sm font-semibold text-emerald-700">
-                      {match.status === "ACTIVE" ? "Active Match" : match.status || "Match"}
+                      Active Match
                     </p>
                     <h3 className="mt-1 text-lg font-semibold text-charcoal">
                       {counterpart?.fullName || counterpart?.name || "Unknown"}
                     </h3>
                     <p className="text-sm text-charcoal/70">
-                      {counterpart?.industries?.join(" • ") || ""}
+                      {counterpart?.role || ""}
                     </p>
                   </div>
                   <div className="flex gap-3">
@@ -104,9 +104,9 @@ export default function DashboardPage() {
                 </div>
               );
             })}
-            {!matches?.matches?.length && (
+            {!matches?.length && (
               <div className="rounded-2xl border border-dashed border-emerald-200 bg-white/70 p-6 text-sm text-charcoal/60">
-                {matches?.message || "Start swiping to create your first match infused with barakah."}
+                Start swiping to create your first match infused with barakah.
               </div>
             )}
           </div>

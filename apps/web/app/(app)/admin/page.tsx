@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "../../../src/lib/trpc";
 import { format } from "date-fns";
+import { BackButtonWeb } from "../../../components/BackButtonWeb";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -130,6 +131,11 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-emerald-50 py-8">
       <div className="max-w-6xl mx-auto p-6 space-y-10">
+        {/* Back Button */}
+        <div>
+          <BackButtonWeb fallbackRoute="/dashboard" />
+        </div>
+
         {/* Header */}
         <div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>

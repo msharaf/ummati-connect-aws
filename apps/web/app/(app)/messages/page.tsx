@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { trpc } from "../../../src/lib/trpc";
 import { MatchList } from "../../../components/messages/MatchList";
 import { MessageThread } from "../../../components/messages/MessageThread";
+import { BackButtonWeb } from "../../../components/BackButtonWeb";
 
 function MessagesContent() {
   const searchParams = useSearchParams();
@@ -26,15 +27,22 @@ function MessagesContent() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] border border-emerald-200 rounded-xl overflow-hidden bg-white shadow-lg">
-      {/* Left Sidebar - Match List */}
-      <div className="w-80 border-r border-emerald-200 bg-emerald-50 flex flex-col">
-        <div className="p-4 border-b border-emerald-200 bg-emerald-600">
-          <h1 className="text-xl font-bold text-white">Messages</h1>
-          <p className="text-sm text-emerald-100">
-            {matches?.length ?? 0} {matches?.length === 1 ? "match" : "matches"}
-          </p>
+    <div className="min-h-screen bg-emerald-50 py-4">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Back Button */}
+        <div className="mb-4">
+          <BackButtonWeb fallbackRoute="/matches" />
         </div>
+
+        <div className="flex h-[calc(100vh-8rem)] border border-emerald-200 rounded-xl overflow-hidden bg-white shadow-lg">
+          {/* Left Sidebar - Match List */}
+          <div className="w-80 border-r border-emerald-200 bg-emerald-50 flex flex-col">
+            <div className="p-4 border-b border-emerald-200 bg-emerald-600">
+              <h1 className="text-xl font-bold text-white">Messages</h1>
+              <p className="text-sm text-emerald-100">
+                {matches?.length ?? 0} {matches?.length === 1 ? "match" : "matches"}
+              </p>
+            </div>
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="p-4 text-center text-charcoal/70">Loading matches...</div>
@@ -67,6 +75,8 @@ function MessagesContent() {
             </div>
           </div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

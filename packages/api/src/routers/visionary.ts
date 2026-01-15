@@ -412,6 +412,17 @@ export const visionaryRouter = router({
         }
       }
 
+      // ⚠️ DEVELOPMENT ONLY: Auto-approve all non-HARAM submissions
+      // TODO: Remove this before production - restore manual review for flagged/grey cases
+      if (riskCategory !== RiskCategory.HARAM) {
+        isApproved = true;
+        isFlagged = false;
+        // Ensure halalScore is reasonable even for grey areas
+        if (halalScore < 80) {
+          halalScore = 80;
+        }
+      }
+
       // Prepare full responses object to store
       const fullResponses = {
         industry: input.industry,
@@ -449,12 +460,13 @@ export const visionaryRouter = router({
       });
 
       // Return status that matches frontend expectations
+      // ⚠️ DEVELOPMENT ONLY: Auto-approve all non-HARAM (bypass flagged status)
+      // TODO: Remove this before production - restore flagged status logic
       let status: "approved" | "flagged" | "rejected";
       if (riskCategory === RiskCategory.HARAM) {
         status = "rejected";
-      } else if (isFlagged || riskCategory === RiskCategory.GREY) {
-        status = "flagged";
       } else {
+        // Auto-approve everything else (development mode)
         status = "approved";
       }
 

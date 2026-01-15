@@ -2,6 +2,7 @@ import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@ummati/db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { isAdminEmail } from "../lib/admin-emails";
 
 export const userRouter = router({
   // Get current user profile with onboarding status
@@ -81,6 +82,9 @@ export const userRouter = router({
             });
           }
 
+          // Check if this email should be granted admin status
+          const shouldBeAdmin = isAdminEmail(email);
+
           // Create user in database
           user = await prisma.user.create({
             data: {
@@ -88,7 +92,8 @@ export const userRouter = router({
               email,
               name,
               fullName,
-              role: input.role
+              role: input.role,
+              isAdmin: shouldBeAdmin
             }
           });
         } catch (error) {

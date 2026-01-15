@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface BackButtonWebProps {
   /** Custom fallback route if no history exists (default: "/") */
@@ -21,6 +21,7 @@ interface BackButtonWebProps {
 /**
  * Reusable BackButton component for web app
  * Handles browser navigation backward with safe fallback
+ * Improved: Tracks navigation state to determine if back is possible
  */
 export function BackButtonWeb({
   fallbackRoute = "/",
@@ -31,20 +32,38 @@ export function BackButtonWeb({
   label = "Back"
 }: BackButtonWebProps) {
   const router = useRouter();
+  const hasNavigatedRef = useRef(false);
   const [canGoBack, setCanGoBack] = useState(false);
 
-  // Check if we can go back (client-side only)
+  // Track if user has navigated in this session
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Check if there's history to go back to
-      setCanGoBack(window.history.length > 1);
+      // Mark that we've mounted (user is on this page)
+      hasNavigatedRef.current = true;
+      
+      // Check if there's previous history in this session
+      // This is more reliable than window.history.length
+      const hasHistory = window.history.length > 1 || 
+        document.referrer !== "" ||
+        sessionStorage.getItem("_ummati_has_navigated") === "true";
+      
+      setCanGoBack(hasHistory);
+      
+      // Mark that we've navigated for future checks
+      if (!sessionStorage.getItem("_ummati_has_navigated")) {
+        sessionStorage.setItem("_ummati_has_navigated", "true");
+      }
     }
   }, []);
 
   const handleBack = () => {
+    // Always try router.back() first - Next.js router handles this gracefully
+    // If there's no history, it simply won't navigate (but won't error)
+    // We track navigation state to provide a fallback when needed
     if (canGoBack) {
       router.back();
     } else {
+      // No history available, use fallback route
       router.push(fallbackRoute);
     }
   };

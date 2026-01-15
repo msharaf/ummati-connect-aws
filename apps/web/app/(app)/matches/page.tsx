@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { trpc } from "../../../src/lib/trpc";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar } from "../../../components/Avatar";
+import { BackButtonWeb } from "../../../components/BackButtonWeb";
 
 interface MatchCardProps {
   match: {
@@ -98,6 +99,11 @@ export default function MatchesPage() {
   return (
     <div className="min-h-screen bg-emerald-50 py-8">
       <div className="max-w-3xl mx-auto p-6">
+        {/* Back Button */}
+        <div className="mb-4">
+          <BackButtonWeb fallbackRoute="/dashboard" />
+        </div>
+
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Matches</h1>
