@@ -1,5 +1,6 @@
 import { httpBatchLink, loggerLink } from "@trpc/client";
 import React from "react";
+import { useAuth } from "@clerk/clerk-expo";
 import { createTRPCReact } from "@trpc/react-query";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
@@ -67,6 +68,7 @@ export const getQueryClient = (): QueryClient => {
 export const queryClient = getQueryClient();
 
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
+  const { getToken } = useAuth();
   const [trpcClient] = useState(() =>
     trpc.createClient({
       transformer: superjson,
@@ -80,7 +82,6 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
           url: `${getBaseUrl()}/api/trpc`,
           async headers() {
             // Get Clerk token for authentication
-            const { getToken } = await import("@clerk/clerk-expo");
             const token = await getToken();
             
             return {
@@ -94,7 +95,6 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
 
   return React.createElement(
     trpc.Provider,
-    { client: trpcClient, queryClient },
-    children
+    { client: trpcClient, queryClient, children }
   );
 }
