@@ -7,13 +7,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: "0.1.0",
   orientation: "portrait",
   scheme: "ummati",
-  icon: "./assets/icon.png",
   userInterfaceStyle: "light",
-  splash: {
-    image: "./assets/splash.png",
-    resizeMode: "contain",
-    backgroundColor: "#ecfdf5"
-  },
   updates: {
     fallbackToCacheTimeout: 0
   },
@@ -22,10 +16,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true
   },
   android: {
-    adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ecfdf5"
-    },
     permissions: []
   },
   extra: {

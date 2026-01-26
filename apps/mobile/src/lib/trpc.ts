@@ -1,4 +1,5 @@
 import { httpBatchLink, loggerLink } from "@trpc/client";
+import React from "react";
 import { createTRPCReact } from "@trpc/react-query";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
@@ -91,5 +92,9 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
     })
   );
 
-  return <trpc.Provider client={trpcClient} queryClient={queryClient}>{children}</trpc.Provider>;
+  return React.createElement(
+    trpc.Provider,
+    { client: trpcClient, queryClient },
+    children
+  );
 }

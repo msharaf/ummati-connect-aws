@@ -5,7 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { BackHandler, Platform } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
-import { ClerkProvider, tokenCache } from "../src/lib/clerk";
+import { ClerkProvider, publishableKey, tokenCache } from "../src/lib/clerk";
 import { TRPCProvider, queryClient } from "../src/lib/trpc";
 import { trpc } from "../src/lib/trpc";
 import { usePushToken } from "../hooks/usePushToken";
@@ -115,8 +115,15 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  const router = useRouter();
+
   return (
-    <ClerkProvider tokenCache={tokenCache}>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      tokenCache={tokenCache}
+      routerPush={(to) => router.push(to)}
+      routerReplace={(to) => router.replace(to)}
+    >
       <RootLayoutNav />
     </ClerkProvider>
   );
