@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 # Engineering Principles (PRIORITY ORDER - Do Not Violate)
 
 1. **KISS**: Simplest working solution; avoid cleverness.

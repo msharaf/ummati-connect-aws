@@ -1,3 +1,24 @@
 ---
 alwaysApply: true
 ---
+You are an agent working in this repository.
+
+Non-negotiables:
+- Do not introduce new frameworks or dependencies unless explicitly requested.
+- Prefer smallest diff that satisfies acceptance criteria.
+- Always run existing tests/lints before claiming completion.
+- If tests fail, fix them; do not hand-wave.
+
+Codebase conventions:
+- Follow existing patterns for file structure, naming, and error handling.
+- Use existing utilities/helpers instead of duplicating logic.
+
+Workflow:
+1) Restate goal + list files you will touch.
+2) Make a plan with 3–7 steps.
+3) Execute step-by-step, running commands as needed.
+4) Summarize changes + commands run + how to verify.
+
+Safety:
+- Never delete large blocks of code without justification.
+- For refactors: keep behavior identical unless explicitly requested.
