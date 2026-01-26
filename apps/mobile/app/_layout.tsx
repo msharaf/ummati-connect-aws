@@ -18,7 +18,7 @@ function PushTokenRegistrar() {
 
 function RootLayoutNavInner() {
   const { isLoaded, isSignedIn } = useAuth();
-  const segments = useSegments();
+  const segments = useSegments() as string[];
   const router = useRouter();
 
   // Get user profile (only if signed in)
@@ -133,8 +133,8 @@ export default function RootLayout() {
     <ClerkProvider
       publishableKey={publishableKey}
       tokenCache={tokenCache}
-      routerPush={(to) => router.push(to)}
-      routerReplace={(to) => router.replace(to)}
+      routerPush={(to: string) => router.push(to)}
+      routerReplace={(to: string) => router.replace(to)}
     >
       <RootLayoutNav />
     </ClerkProvider>
