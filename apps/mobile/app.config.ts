@@ -27,7 +27,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? ""
   },
   plugins: [
-    "expo-router"
+    "expo-router",
+    "expo-web-browser"
   ]
 });
 

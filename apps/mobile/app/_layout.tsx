@@ -11,9 +11,12 @@ import { trpc } from "../src/lib/trpc";
 import { usePushToken } from "../hooks/usePushToken";
 import { useBackHandler } from "../src/hooks/useBackHandler";
 
-function RootLayoutNav() {
-  // Register push token
+function PushTokenRegistrar() {
   usePushToken();
+  return null;
+}
+
+function RootLayoutNavInner() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
@@ -32,7 +35,7 @@ function RootLayoutNav() {
     // Only handle back if we're not on the root screens (sign-in, landing)
     const inAuthGroup = segments[0] === "(auth)";
     const inTabsGroup = segments[0] === "(tabs)";
-    const isSignIn = segments[1] === "sign-in";
+    const isSignIn = segments?.[1] === "sign-in";
     
     // Don't prevent default on sign-in or root screens
     if (!isLoaded || (!isSignedIn && !isSignIn)) {
@@ -48,7 +51,7 @@ function RootLayoutNav() {
     // If no history, redirect to home
     if (inTabsGroup) {
       // Already in tabs, stay here or go to swipe
-      if (segments[1] !== "swipe") {
+      if (segments?.[1] !== "swipe") {
         router.replace("/(tabs)/swipe");
         return true;
       }
@@ -63,7 +66,7 @@ function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === "(auth)";
     const inTabsGroup = segments[0] === "(tabs)";
-    const isChooseRole = segments[1] === "choose-role";
+    const isChooseRole = segments?.[1] === "choose-role";
 
     if (!isSignedIn) {
       // Not signed in - redirect to sign-in (unless already in auth group)
@@ -103,12 +106,21 @@ function RootLayoutNav() {
   }, [isSignedIn, isLoaded, segments, userData, isLoadingUser, router]);
 
   return (
+    <>
+      <PushTokenRegistrar />
+      <SafeAreaView className="flex-1 bg-emerald-50">
+        <StatusBar style="dark" />
+        <Slot />
+      </SafeAreaView>
+    </>
+  );
+}
+
+function RootLayoutNav() {
+  return (
     <QueryClientProvider client={queryClient}>
       <TRPCProvider>
-        <SafeAreaView className="flex-1 bg-emerald-50">
-          <StatusBar style="dark" />
-          <Slot />
-        </SafeAreaView>
+        <RootLayoutNavInner />
       </TRPCProvider>
     </QueryClientProvider>
   );

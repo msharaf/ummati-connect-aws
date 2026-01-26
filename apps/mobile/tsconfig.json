@@ -3,6 +3,7 @@
   "compilerOptions": {
     "allowJs": false,
     "baseUrl": ".",
+    "jsx": "react-native",
     "module": "es2015",
     "paths": {
       "@ummati/api": ["../../packages/api/src"],

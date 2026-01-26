@@ -8,7 +8,9 @@ Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
-    shouldSetBadge: true
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true
   })
 });
 
@@ -31,8 +33,14 @@ export function usePushToken() {
           return;
         }
 
-        // Get project ID from EAS config or use undefined (Expo will handle it)
-        const projectId = Constants.expoConfig?.extra?.eas?.projectId || undefined;
+        // Get project ID from EAS config
+        const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+
+        // In development without EAS, push tokens may not work
+        if (!projectId) {
+          console.log("[PUSH] No projectId found - push notifications disabled in dev");
+          return;
+        }
 
         const tokenData = await Notifications.getExpoPushTokenAsync({
           projectId
@@ -42,7 +50,8 @@ export function usePushToken() {
           saveToken.mutate({ token: tokenData.data });
         }
       } catch (error) {
-        console.error("[PUSH] Failed to register push token:", error);
+        // Gracefully handle push token errors in development
+        console.log("[PUSH] Push notifications not available:", error);
       }
     }
 
