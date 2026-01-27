@@ -38,7 +38,12 @@ export function usePushToken() {
 
         // In development without EAS, push tokens may not work
         if (!projectId) {
-          console.log("[PUSH] No projectId found - push notifications disabled in dev");
+          // Only log in non-dev mode to reduce noise during development
+          if (__DEV__) {
+            // Silently skip push notifications in dev mode - this is expected
+          } else {
+            console.log("[PUSH] No projectId found - push notifications disabled");
+          }
           return;
         }
 

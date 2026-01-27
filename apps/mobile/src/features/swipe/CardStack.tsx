@@ -9,7 +9,7 @@ import Animated, {
   Extrapolate
 } from "react-native-reanimated";
 import { ProfileCard } from "./ProfileCard";
-import type { User } from "@ummati/db";
+import type { User } from "@ummati/db/types";
 
 const SWIPE_THRESHOLD = 120;
 const ROTATION_MULTIPLIER = 0.1;

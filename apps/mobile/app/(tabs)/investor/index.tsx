@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { View, Text } from "react-native";
-import { StartupStage } from "@ummati/db";
+import type { StartupStage } from "@ummati/db/types";
 import { FiltersPanel } from "../../../src/features/investor/FiltersPanel";
 import { VisionaryList } from "../../../src/features/investor/VisionaryList";
 

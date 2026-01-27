@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   ScrollView
 } from "react-native";
-import { StartupStage } from "@ummati/db";
+import type { StartupStage } from "@ummati/db/types";
 import { trpc } from "../../lib/trpc";
 import { Ionicons } from "@expo/vector-icons";
 

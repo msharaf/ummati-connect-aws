@@ -3,7 +3,7 @@
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { trpc } from "../../lib/trpc";
-import { StartupStage } from "@ummati/db";
+import type { StartupStage } from "@ummati/db/types";
 
 interface VisionaryListProps {
   filters: {

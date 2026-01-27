@@ -1,6 +1,6 @@
 import { View, Text, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import type { User } from "@ummati/db";
+import type { User } from "@ummati/db/types";
 
 interface ProfileCardProps {
   user: User & {

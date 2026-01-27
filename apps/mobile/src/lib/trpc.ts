@@ -36,15 +36,17 @@ export const getBaseUrl = (): string => {
 
   // On native platforms (mobile)
   // For physical devices, set EXPO_PUBLIC_API_URL to your LAN IP:
-  // Example: EXPO_PUBLIC_API_URL=http://192.168.1.100:3000
+  // Example: EXPO_PUBLIC_API_URL=http://192.168.1.100:3001
   // For iOS simulator or Android emulator, localhost works fine
   const lanIp = Constants.expoConfig?.hostUri?.split(":")[0];
   if (lanIp && lanIp !== "localhost" && lanIp !== "127.0.0.1") {
-    return `http://${lanIp}:3000`;
+    return `http://${lanIp}:3001`;
   }
 
   // Fallback to localhost (works for iOS simulator and Android emulator)
-  return "http://localhost:3000";
+  // Default to standalone API server on port 3001
+  // If using Next.js web app, set EXPO_PUBLIC_API_URL=http://localhost:3000
+  return "http://localhost:3001";
 };
 
 // Create a singleton QueryClient instance
@@ -56,7 +58,11 @@ export const getQueryClient = (): QueryClient => {
       defaultOptions: {
         queries: {
           staleTime: 5 * 1000,
-          retry: 1
+          retry: 1,
+          retryDelay: 1000,
+          refetchOnWindowFocus: false,
+          // Add timeout to prevent hanging queries
+          networkMode: "online"
         }
       }
     });
@@ -79,7 +85,27 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
             (opts.direction === "down" && opts.result instanceof Error)
         }),
         httpBatchLink({
-          url: `${getBaseUrl()}/api/trpc`,
+          url: (() => {
+            const baseUrl = getBaseUrl();
+            // If using Next.js (port 3000), use /api/trpc endpoint
+            // If using standalone API server (port 3001), use /trpc endpoint
+            if (baseUrl.includes(':3000')) {
+              return `${baseUrl}/api/trpc`;
+            }
+            return `${baseUrl}/trpc`;
+          })(),
+          fetch: (url, options) => {
+            // Add timeout to prevent hanging requests
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            
+            return fetch(url, {
+              ...options,
+              signal: controller.signal
+            }).finally(() => {
+              clearTimeout(timeoutId);
+            });
+          },
           async headers() {
             // Get Clerk token for authentication
             const token = await getToken();

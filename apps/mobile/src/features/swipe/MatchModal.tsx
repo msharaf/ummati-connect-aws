@@ -1,6 +1,6 @@
 import { View, Text, Modal, TouchableOpacity, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import type { User } from "@ummati/db";
+import type { User } from "@ummati/db/types";
 
 interface MatchModalProps {
   visible: boolean;

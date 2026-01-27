@@ -20,10 +20,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     // For development on physical device, set your LAN IP:
-    // EXPO_PUBLIC_API_URL=http://192.168.1.100:3000
+    // EXPO_PUBLIC_API_URL=http://192.168.1.100:3001
     // For iOS simulator or Android emulator, use localhost:
-    // EXPO_PUBLIC_API_URL=http://localhost:3000
-    apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000",
+    // EXPO_PUBLIC_API_URL=http://localhost:3001
+    // Note: Default is standalone API server (port 3001)
+    // If using Next.js web app, set: EXPO_PUBLIC_API_URL=http://localhost:3000
+    apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001",
     clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? ""
   },
   plugins: [

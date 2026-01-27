@@ -4,7 +4,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { trpc } from "../../lib/trpc";
 import { CardStack } from "./CardStack";
 import { MatchModal } from "./MatchModal";
-import { SwipeDirection } from "@ummati/db";
+import type { SwipeDirection } from "@ummati/db/types";
 
 export function SwipeScreen() {
   const { userId } = useAuth();

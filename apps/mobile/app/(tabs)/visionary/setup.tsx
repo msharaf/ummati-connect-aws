@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StartupStage } from "@ummati/db";
+import type { StartupStage } from "@ummati/db/types";
 import { trpc } from "../../../src/lib/trpc";
 import { Ionicons } from "@expo/vector-icons";
 import { BackButton } from "../../../src/components/BackButton";
