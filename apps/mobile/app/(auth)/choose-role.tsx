@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
+import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
+
+// Type cast to fix TypeScript error with expo-linear-gradient
+const LinearGradient = ExpoLinearGradient as unknown as React.ComponentType<{
+  colors: string[];
+  style?: object;
+  children?: React.ReactNode;
+}>;
 import { SafeAreaView } from "react-native-safe-area-context";
 import { trpc } from "../../src/lib/trpc";
 import { BackButton } from "../../src/components/BackButton";
@@ -15,10 +22,23 @@ export default function ChooseRoleScreen() {
   // Get current user
   const { data: userData, isLoading: isLoadingUser } = trpc.user.me.useQuery();
 
-  // Set role mutation (TODO: This endpoint needs to be created)
-  // For now, we'll just invalidate and redirect
-  const setRole = trpc.user.me.useQuery(undefined, {
-    enabled: false
+  // Set role mutation
+  const setRole = trpc.user.setRole.useMutation({
+    onSuccess: (data) => {
+      // Invalidate user queries to refetch updated data
+      utils.user.me.invalidate();
+      utils.user.getMe.invalidate();
+      
+      // Redirect based on role
+      if (data.role === "INVESTOR") {
+        router.replace("/(tabs)/investor");
+      } else if (data.role === "VISIONARY") {
+        router.replace("/(tabs)/visionary/dashboard");
+      }
+    },
+    onError: (error) => {
+      alert(`Failed to set role: ${error.message}`);
+    }
   });
 
   // If user already completed onboarding, redirect to their dashboard
@@ -33,11 +53,7 @@ export default function ChooseRoleScreen() {
   }, [userData, router]);
 
   const handleRoleSelect = async (role: "INVESTOR" | "VISIONARY") => {
-    // TODO: Implement setRole mutation in API
-    // For now, show alert that this needs to be implemented
-    alert(`Role selection (${role}) - API endpoint needs to be implemented`);
-    // After implementing the API endpoint, uncomment:
-    // setRole.mutate({ role });
+    setRole.mutate({ role });
   };
 
   // Show loading state
@@ -95,19 +111,19 @@ export default function ChooseRoleScreen() {
             className="bg-white rounded-2xl shadow-lg p-6 border-2 border-emerald-200"
           >
             <View className="items-center">
-              <LinearGradient
-                colors={["#10b981", "#047857"]}
+              <View
                 style={{
                   width: 80,
                   height: 80,
                   borderRadius: 40,
                   alignItems: "center",
                   justifyContent: "center",
-                  marginBottom: 16
+                  marginBottom: 16,
+                  backgroundColor: "#10b981"
                 }}
               >
                 <Text className="text-4xl">💼</Text>
-              </LinearGradient>
+              </View>
               <Text className="text-2xl font-bold text-gray-900 mb-2">
                 I am an Investor
               </Text>
@@ -136,19 +152,19 @@ export default function ChooseRoleScreen() {
             className="bg-white rounded-2xl shadow-lg p-6 border-2 border-emerald-200"
           >
             <View className="items-center">
-              <LinearGradient
-                colors={["#f59e0b", "#d97706"]}
+              <View
                 style={{
                   width: 80,
                   height: 80,
                   borderRadius: 40,
                   alignItems: "center",
                   justifyContent: "center",
-                  marginBottom: 16
+                  marginBottom: 16,
+                  backgroundColor: "#f59e0b"
                 }}
               >
                 <Text className="text-4xl">✨</Text>
-              </LinearGradient>
+              </View>
               <Text className="text-2xl font-bold text-gray-900 mb-2">
                 I am a Visionary
               </Text>
