@@ -14,7 +14,7 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { rootRouter } from "./root";
 import { createContext } from "./context";
 
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT ?? 3001);
 
 // Check for required environment variables
 if (!process.env.CLERK_SECRET_KEY) {
@@ -99,7 +99,8 @@ const server = createServer(async (req, res) => {
     const body = await getBody(req);
     
     // Convert Node.js request to Fetch API Request
-    const protocol = req.socket.encrypted ? "https:" : "http:";
+    const isTls = "encrypted" in req.socket && (req.socket as { encrypted?: boolean }).encrypted;
+    const protocol = isTls ? "https:" : "http:";
     const host = req.headers.host || "localhost";
     const fullUrl = `${protocol}//${host}${req.url}`;
     

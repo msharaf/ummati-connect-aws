@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { matchmakingRouter } from "./matchmaking";
+import { createMockClerkClient } from "../testUtils/mockClerk";
 
 describe("matchmakingRouter", () => {
   const mockCtx = {
     userId: "user_123",
-    clerk: {}
+    clerk: createMockClerkClient()
   };
 
   beforeEach(() => {
@@ -17,9 +18,7 @@ describe("matchmakingRouter", () => {
       const result = await caller.getRecommendations();
 
       expect(result).toHaveProperty("recommendations");
-      expect(result).toHaveProperty("message");
       expect(Array.isArray(result.recommendations)).toBe(true);
-      expect(result.message).toBe("Recommendations feature coming soon");
     });
   });
 
@@ -28,10 +27,7 @@ describe("matchmakingRouter", () => {
       const caller = matchmakingRouter.createCaller(mockCtx);
       const result = await caller.getMatches();
 
-      expect(result).toHaveProperty("matches");
-      expect(result).toHaveProperty("message");
-      expect(Array.isArray(result.matches)).toBe(true);
-      expect(result.message).toBe("Matches feature coming soon");
+      expect(Array.isArray(result)).toBe(true);
     });
   });
 });

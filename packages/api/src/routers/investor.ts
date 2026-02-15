@@ -115,7 +115,6 @@ export const investorRouter = router({
                 sector: user.visionaryProfile.sector,
                 description: user.visionaryProfile.description,
                 fundingNeeded: user.visionaryProfile.fundingNeeded,
-                fundingAsk: user.visionaryProfile.fundingNeeded, // Legacy field - map from fundingNeeded
                 location: user.visionaryProfile.location,
                 logoUrl: user.visionaryProfile.logoUrl,
                 barakahScore: user.visionaryProfile.barakahScore?.score || null

@@ -38,7 +38,6 @@ function calculateMatchScore(
     industry: string;
     sector?: string | null;
     fundingNeeded: number | null;
-    fundingAsk?: number | null;
   }
 ): { score: number; reasons: string[] } {
   let score = 0;
@@ -109,7 +108,7 @@ function calculateMatchScore(
   }
 
   // 4. Ticket size compatibility (15 points)
-  const fundingNeeded = founder.fundingNeeded ?? founder.fundingAsk ?? 0;
+  const fundingNeeded = founder.fundingNeeded ?? 0;
   const minTicket = investor.minTicketSize ?? 0;
   const maxTicket = investor.maxTicketSize ?? Infinity;
 
@@ -206,8 +205,7 @@ export async function getInvestorRecommendations(
         halalScore: founderProfile.halalScore,
         industry: founderProfile.industry,
         sector: founderProfile.sector,
-        fundingNeeded: founderProfile.fundingNeeded,
-        fundingAsk: founderProfile.fundingAsk
+        fundingNeeded: founderProfile.fundingNeeded
       }
     );
 
@@ -318,8 +316,7 @@ export async function getFounderRecommendations(
         halalScore: founderProfile.halalScore,
         industry: founderProfile.industry,
         sector: founderProfile.sector,
-        fundingNeeded: founderProfile.fundingNeeded,
-        fundingAsk: founderProfile.fundingAsk
+        fundingNeeded: founderProfile.fundingNeeded
       }
     );
 

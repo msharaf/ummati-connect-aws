@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { authRouter } from "./auth";
+import { createMockClerkClient } from "../testUtils/mockClerk";
 
 describe("authRouter", () => {
   const mockCtx = {
     userId: "user_123",
-    clerk: {}
+    clerk: createMockClerkClient()
   };
 
   beforeEach(() => {

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { router, publicProcedure, protectedProcedure } from "./trpc";
 import { TRPCError } from "@trpc/server";
+import { createMockClerkClient } from "./testUtils/mockClerk";
 
 describe("tRPC setup", () => {
   it("should create a router", () => {
@@ -16,7 +17,7 @@ describe("tRPC setup", () => {
       public: publicProcedure.query(() => ({ message: "public" }))
     });
 
-    const caller = testRouter.createCaller({ userId: null, clerk: {} });
+    const caller = testRouter.createCaller({ userId: null, clerk: createMockClerkClient() });
 
     const result = await caller.public();
     expect(result.message).toBe("public");
@@ -28,12 +29,12 @@ describe("tRPC setup", () => {
     });
 
     // Should work with userId
-    const callerWithAuth = testRouter.createCaller({ userId: "user_123", clerk: {} });
+    const callerWithAuth = testRouter.createCaller({ userId: "user_123", clerk: createMockClerkClient() });
     const result = await callerWithAuth.protected();
     expect(result.message).toBe("protected");
 
     // Should throw error without userId
-    const callerWithoutAuth = testRouter.createCaller({ userId: null, clerk: {} });
+    const callerWithoutAuth = testRouter.createCaller({ userId: null, clerk: createMockClerkClient() });
     await expect(callerWithoutAuth.protected()).rejects.toThrow(TRPCError);
     await expect(callerWithoutAuth.protected()).rejects.toThrow("UNAUTHORIZED");
   });

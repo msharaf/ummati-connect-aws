@@ -2,7 +2,7 @@ import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@ummati/db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { StartupStage, RiskCategory } from "@ummati/db";
+import { StartupStage, RiskCategory, HalalCategory } from "@ummati/db";
 import { calculateHalalFocus, getHalalFocusQuestionnaire, type HalalFocusResponse } from "../lib/halalfocus";
 import { calculateHalalVerification } from "../lib/halal-verification";
 
@@ -38,8 +38,7 @@ export const visionaryRouter = router({
       sector: user.visionaryProfile?.sector || null, // Legacy
       description: user.visionaryProfile?.description || null,
       pitch: user.visionaryProfile?.pitch || null,
-      fundingNeeded: user.visionaryProfile?.fundingNeeded || user.visionaryProfile?.fundingAsk || null,
-      fundingAsk: user.visionaryProfile?.fundingAsk || null, // Legacy
+      fundingNeeded: user.visionaryProfile?.fundingNeeded ?? null,
       websiteUrl: user.visionaryProfile?.websiteUrl || null,
       logoUrl: user.visionaryProfile?.logoUrl || null,
       teamSize: user.visionaryProfile?.teamSize || null,
@@ -67,8 +66,7 @@ export const visionaryRouter = router({
         sector: z.string().min(1).optional(), // Legacy - keep for backward compatibility
         description: z.string().nullable().optional(),
         pitch: z.string().nullable().optional(),
-        fundingNeeded: z.number().nullable().optional(), // New field
-        fundingAsk: z.number().nullable().optional(), // Legacy
+        fundingNeeded: z.number().nullable().optional(),
         location: z.string().nullable().optional(),
         websiteUrl: z.string().url().nullable().optional(),
         logoUrl: z.string().url().nullable().optional(),
@@ -115,8 +113,7 @@ export const visionaryRouter = router({
       const onboardingComplete = profileComplete && hasHalalFocus;
 
       // Update or create visionary profile
-      // Map fundingAsk to fundingNeeded for backward compatibility (fundingAsk is legacy field)
-      const fundingValue = input.fundingNeeded !== undefined ? input.fundingNeeded : (input.fundingAsk !== undefined ? input.fundingAsk : undefined);
+      const fundingValue = input.fundingNeeded;
 
       const profile = await prisma.visionaryProfile.upsert({
         where: { userId: user.id },
@@ -179,12 +176,12 @@ export const visionaryRouter = router({
         sector: z.string().min(1),
         description: z.string().nullable().optional(),
         pitch: z.string().nullable().optional(),
-        fundingAsk: z.number().nullable().optional(),
+        fundingNeeded: z.number().nullable().optional(),
         location: z.string().nullable().optional(),
         websiteUrl: z.string().url().nullable().optional(),
         logoUrl: z.string().url().nullable().optional(),
         teamSize: z.number().nullable().optional(),
-        halalCategory: z.string().nullable().optional()
+        halalCategory: z.nativeEnum(HalalCategory).nullable().optional()
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -200,8 +197,7 @@ export const visionaryRouter = router({
         });
       }
 
-      // Map fundingAsk to fundingNeeded for backward compatibility (fundingAsk is legacy field)
-      const fundingValue = input.fundingAsk ?? null;
+      const fundingValue = input.fundingNeeded ?? null;
 
       const profile = await prisma.visionaryProfile.upsert({
         where: { userId: user.id },
@@ -218,7 +214,7 @@ export const visionaryRouter = router({
           websiteUrl: input.websiteUrl || null,
           logoUrl: input.logoUrl || null,
           teamSize: input.teamSize || null,
-          halalCategory: input.halalCategory || null
+          halalCategory: input.halalCategory ?? null
         },
         create: {
           userId: user.id,
@@ -236,7 +232,7 @@ export const visionaryRouter = router({
           websiteUrl: input.websiteUrl || null,
           logoUrl: input.logoUrl || null,
           teamSize: input.teamSize || null,
-          halalCategory: input.halalCategory || null
+          halalCategory: input.halalCategory ?? null
         }
       });
 

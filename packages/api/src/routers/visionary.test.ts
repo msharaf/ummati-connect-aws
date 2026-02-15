@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { visionaryRouter } from "./visionary";
 import { prisma } from "@ummati/db";
 import { RiskCategory, StartupStage } from "@ummati/db";
+import { createMockClerkClient } from "../testUtils/mockClerk";
 
 // Mock Prisma
 vi.mock("@ummati/db", () => ({
@@ -31,7 +32,7 @@ vi.mock("@ummati/db", () => ({
 describe("visionaryRouter", () => {
   const mockCtx = {
     userId: "user_clerk_123",
-    clerk: {}
+    clerk: createMockClerkClient()
   };
 
   beforeEach(() => {

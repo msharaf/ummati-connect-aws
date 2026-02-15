@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { adminRouter } from "./admin";
 import { prisma } from "@ummati/db";
+import { createMockClerkClient } from "../testUtils/mockClerk";
 
 // Mock Prisma
 vi.mock("@ummati/db", () => ({
@@ -27,12 +28,12 @@ vi.mock("@ummati/db", () => ({
 describe("adminRouter", () => {
   const mockAdminCtx = {
     userId: "admin_clerk_123",
-    clerk: {} as any
+    clerk: createMockClerkClient()
   };
 
   const mockUserCtx = {
     userId: "user_clerk_123",
-    clerk: {} as any
+    clerk: createMockClerkClient()
   };
 
   beforeEach(() => {

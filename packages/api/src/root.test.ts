@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { rootRouter } from "./root";
+import { createMockClerkClient } from "./testUtils/mockClerk";
 
 describe("rootRouter", () => {
   const mockCtx = {
     userId: "user_123",
-    clerk: {}
+    clerk: createMockClerkClient()
   };
 
   it("should have auth router", async () => {

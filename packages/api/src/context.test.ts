@@ -34,7 +34,7 @@ describe("createContext", () => {
     process.env.CLERK_SECRET_KEY = "test-secret-key";
     
     const mockVerifyToken = vi.mocked(verifyToken);
-    mockVerifyToken.mockResolvedValue({ sub: "user_456" });
+    mockVerifyToken.mockResolvedValue({ sub: "user_456" } as Awaited<ReturnType<typeof verifyToken>>);
 
     const opts = { authToken: "valid_token_here" };
     const context = await createContext(opts);

@@ -1,4 +1,5 @@
 import { prisma } from "@ummati/db";
+import type { StartupStage } from "@ummati/db";
 
 export interface UserProfile {
   id: string;
@@ -19,8 +20,8 @@ export interface UserProfile {
     id: string;
     startupName: string;
     tagline: string | null;
-    startupStage: string;
-    sector: string;
+    startupStage: StartupStage;
+    sector: string | null;
     description: string | null;
     isApproved: boolean;
   } | null;
