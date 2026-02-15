@@ -96,8 +96,9 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
           })(),
           fetch: (url, options) => {
             // Add timeout to prevent hanging requests
+            // 30 seconds for tunnel/slow connections
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
             
             return fetch(url, {
               ...options,

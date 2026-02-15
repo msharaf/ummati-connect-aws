@@ -16,15 +16,27 @@ export async function createContext(opts: CreateContextOptions = {}) {
 
   // If we have an auth token but no userId, verify it with Clerk
   if (opts.authToken && !userId) {
-    try {
-      const payload = await verifyToken(opts.authToken, {
-        secretKey: process.env.CLERK_SECRET_KEY
-      });
-      userId = payload.sub;
-    } catch (error) {
-      // Token invalid, userId remains null
-      // Log error without exposing token details
-      console.error("Failed to verify auth token:", error instanceof Error ? error.message : "Unknown error");
+    // Skip verification if CLERK_SECRET_KEY is not set
+    if (!process.env.CLERK_SECRET_KEY) {
+      console.warn("⚠️  Skipping token verification - CLERK_SECRET_KEY not set");
+    } else {
+      try {
+        // Add timeout to prevent hanging on slow Clerk verification
+        const verifyPromise = verifyToken(opts.authToken, {
+          secretKey: process.env.CLERK_SECRET_KEY
+        });
+        
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error("Token verification timeout")), 5000);
+        });
+        
+        const payload = await Promise.race([verifyPromise, timeoutPromise]);
+        userId = payload.sub;
+      } catch (error) {
+        // Token invalid, userId remains null
+        // Log error without exposing token details
+        console.error("Failed to verify auth token:", error instanceof Error ? error.message : "Unknown error");
+      }
     }
   }
 
