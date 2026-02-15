@@ -70,17 +70,18 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   // Get current user
-  const { data: currentUser } = trpc.user.getMe.useQuery();
+  const { data: userData } = trpc.user.getMe.useQuery();
+  const currentUser = userData?.profile;
 
   // Get match details
-  const { data: match } = trpc.match.getMatchById.useQuery(
+  const { data: match } = trpc.matchmaking.getMatch.useQuery(
     { matchId: matchId! },
     { enabled: Boolean(matchId) }
   );
 
   // Get messages
-  const { data: messages, isLoading: isLoadingMessages } =
-    trpc.message.getMessagesForMatch.useQuery(
+  const { data: messagesData, isLoading: isLoadingMessages } =
+    trpc.messages.getMessagesForMatch.useQuery(
       { matchId: matchId! },
       {
         enabled: Boolean(matchId),
@@ -89,21 +90,22 @@ export default function ChatScreen() {
     );
 
   const utils = trpc.useUtils();
+  const messages = messagesData?.messages ?? [];
 
   // Mark messages as read when screen opens
-  const markAsRead = trpc.message.markAsRead.useMutation({
+  const markAsRead = trpc.messages.markAsRead.useMutation({
     onSuccess: () => {
-      utils.message.getMatchesWithLastMessage.invalidate();
+      utils.messages.getMatchesWithLastMessage.invalidate();
     }
   });
 
   // Send message mutation
-  const sendMessage = trpc.message.sendMessage.useMutation({
+  const sendMessage = trpc.messages.sendMessage.useMutation({
     onSuccess: () => {
       setMessageText("");
       // Invalidate and refetch messages
-      utils.message.getMessagesForMatch.invalidate({ matchId: matchId! });
-      utils.message.getMatchesWithLastMessage.invalidate();
+      utils.messages.getMessagesForMatch.invalidate({ matchId: matchId! });
+      utils.messages.getMatchesWithLastMessage.invalidate();
       // Scroll to bottom after sending
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
@@ -137,13 +139,9 @@ export default function ChatScreen() {
     }
   };
 
-  const otherUser = match
-    ? match.userAId === currentUser?.id
-      ? match.userB
-      : match.userA
-    : null;
+  const otherUser = match?.otherUser ?? null;
 
-  const displayName = otherUser?.name || "Unknown User";
+  const displayName = otherUser?.fullName || "Unknown User";
   const roleLabel = otherUser?.role === "INVESTOR" ? "Investor" : "Visionary";
   const roleBadgeColor =
     otherUser?.role === "INVESTOR" ? "bg-emerald-600" : "bg-yellow-600";
@@ -169,7 +167,7 @@ export default function ChatScreen() {
           <View className="mr-3">
             <BackButton fallbackRoute="/(tabs)/messages" />
           </View>
-          <Avatar src={otherUser?.avatarUrl} name={otherUser?.name} size="md" className="mr-3" />
+          <Avatar src={otherUser?.avatarUrl} name={displayName} size="md" className="mr-3" />
           <View className="flex-1">
             <Text className="text-xl font-semibold text-gray-900">
               {displayName}

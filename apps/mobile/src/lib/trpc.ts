@@ -3,7 +3,7 @@ import React from "react";
 import { useAuth } from "@clerk/clerk-expo";
 import { createTRPCReact } from "@trpc/react-query";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import superjson from "superjson";
@@ -75,6 +75,11 @@ export const queryClient = getQueryClient();
 
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
   const { getToken } = useAuth();
+  const getTokenRef = useRef(getToken);
+  useEffect(() => {
+    getTokenRef.current = getToken;
+  }, [getToken]);
+
   const [trpcClient] = useState(() =>
     trpc.createClient({
       transformer: superjson,
@@ -108,9 +113,8 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
             });
           },
           async headers() {
-            // Get Clerk token for authentication
-            const token = await getToken();
-            
+            // Use ref to always get latest getToken (avoids stale closure after sign-in)
+            const token = await getTokenRef.current();
             return {
               ...(token ? { Authorization: `Bearer ${token}` } : {})
             };

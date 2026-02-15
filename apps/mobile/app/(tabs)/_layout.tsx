@@ -4,6 +4,7 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { trpc } from "../../src/lib/trpc";
 import { View, ActivityIndicator, Text } from "react-native";
+import { LogoutButton } from "../../src/components/LogoutButton";
 
 export default function TabsLayout() {
   // Get user role to conditionally show tabs
@@ -24,7 +25,11 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerRight: () => <LogoutButton />,
+        headerTitle: "",
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: "#ecfdf5" },
         tabBarActiveTintColor: "#047857",
         tabBarInactiveTintColor: "#6b7280",
         tabBarStyle: {
@@ -69,7 +74,7 @@ export default function TabsLayout() {
         name="messages/[matchId]"
         options={{
           href: null, // Hide from tab bar
-          headerShown: false
+          headerTitle: "Chat"
         }}
       />
 
@@ -102,7 +107,7 @@ export default function TabsLayout() {
             name="visionary/setup"
             options={{
               href: null, // Hide from tab bar
-              headerShown: false
+              headerTitle: "Setup"
             }}
           />
         </>
@@ -132,7 +137,7 @@ export default function TabsLayout() {
             name="visionary/setup"
             options={{
               href: null, // Hide from tab bar
-              headerShown: false
+              headerTitle: "Setup"
             }}
           />
         </>

@@ -24,7 +24,12 @@ if (fs.existsSync(envPath)) {
 }
 
 const cwd = path.join(__dirname, "..");
-const result = spawnSync("npx", ["expo", "start"], {
+// Use --offline to skip Expo API version check when network fetch fails (firewall, proxy, etc.)
+// Set EXPO_ONLINE=1 to force online mode and enable version validation
+const useOffline = process.env.EXPO_ONLINE !== "1" && process.env.EXPO_ONLINE !== "true";
+const args = ["expo", "start", ...(useOffline ? ["--offline"] : [])];
+
+const result = spawnSync("npx", args, {
   stdio: "inherit",
   env: process.env,
   cwd,

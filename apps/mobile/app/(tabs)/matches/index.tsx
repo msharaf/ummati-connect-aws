@@ -11,18 +11,18 @@ interface MatchListItemProps {
     id: string;
     otherUser: {
       id: string;
-      name: string | null;
+      fullName: string | null;
       avatarUrl: string | null;
       role: "INVESTOR" | "VISIONARY" | null;
     };
-    lastMessage: string | null;
-    lastMessageAt: Date;
+    lastMessage: { text: string; createdAt: Date } | null;
   };
   onPress: () => void;
 }
 
 function MatchListItem({ match, onPress }: MatchListItemProps) {
-  const { otherUser, lastMessage, lastMessageAt } = match;
+  const { otherUser, lastMessage } = match;
+  const displayName = otherUser.fullName || "Unknown User";
 
   const formatTimestamp = (date: Date) => {
     return formatDistanceToNow(new Date(date), { addSuffix: true });
@@ -38,13 +38,13 @@ function MatchListItem({ match, onPress }: MatchListItemProps) {
       className="flex-row items-center gap-4 p-4 bg-white border border-emerald-100 rounded-xl shadow-sm mb-3"
     >
       {/* Avatar */}
-      <Avatar src={otherUser.avatarUrl} name={otherUser.name} size="md" />
+      <Avatar src={otherUser.avatarUrl} name={displayName} size="md" />
 
       {/* Content */}
       <View className="flex-1 min-w-0">
         <View className="flex-row items-center gap-2 mb-1">
           <Text className="text-lg font-semibold text-gray-900 flex-1" numberOfLines={1}>
-            {otherUser.name || "Unknown User"}
+            {displayName}
           </Text>
           {otherUser.role && (
             <View className={`px-2 py-0.5 rounded-full ${roleBadgeColor}`}>
@@ -53,10 +53,10 @@ function MatchListItem({ match, onPress }: MatchListItemProps) {
           )}
         </View>
         <Text className="text-sm text-gray-600 mb-1" numberOfLines={1}>
-          {lastMessage || "No messages yet"}
+          {lastMessage?.text || "No messages yet"}
         </Text>
         <Text className="text-xs text-gray-500">
-          {formatTimestamp(lastMessageAt)}
+          {formatTimestamp(lastMessage?.createdAt ?? new Date())}
         </Text>
       </View>
     </TouchableOpacity>
@@ -65,7 +65,7 @@ function MatchListItem({ match, onPress }: MatchListItemProps) {
 
 export default function MatchesScreen() {
   const router = useRouter();
-  const { data: matches, isLoading } = trpc.match.getMyMatches.useQuery();
+  const { data: matches, isLoading } = trpc.matchmaking.getMatches.useQuery();
 
   if (isLoading) {
     return (

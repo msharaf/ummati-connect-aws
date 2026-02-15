@@ -32,32 +32,25 @@ function RootLayoutNavInner() {
 
   // Handle Android hardware back button globally
   useBackHandler(() => {
-    // Only handle back if we're not on the root screens (sign-in, landing)
-    const inAuthGroup = segments[0] === "(auth)";
     const inTabsGroup = segments[0] === "(tabs)";
-    const isSignIn = segments?.[1] === "sign-in";
-    
-    // Don't prevent default on sign-in or root screens
-    if (!isLoaded || (!isSignedIn && !isSignIn)) {
-      return false; // Allow default back behavior (exit app or go to previous route)
+    const isSignInScreen = segments?.[1] === "sign-in";
+
+    // Unauthenticated: prevent back into authenticated screens
+    if (!isLoaded) return false;
+    if (!isSignedIn) {
+      if (!isSignInScreen) router.replace("/(auth)/sign-in");
+      return true; // Always prevent - avoids returning to authenticated stack
     }
-    
-    // For authenticated screens, try to go back
+
+    // Authenticated: handle back within app
     if (router.canGoBack()) {
       router.back();
-      return true; // Prevent default (we handled it)
+      return true;
     }
-    
-    // If no history, redirect to home
-    if (inTabsGroup) {
-      // Already in tabs, stay here or go to swipe
-      if (segments?.[1] !== "swipe") {
-        router.replace("/(tabs)/swipe");
-        return true;
-      }
+    if (inTabsGroup && segments?.[1] !== "swipe") {
+      router.replace("/(tabs)/swipe");
+      return true;
     }
-    
-    // Default: allow back button to work normally
     return false;
   });
 
@@ -69,8 +62,10 @@ function RootLayoutNavInner() {
     const isChooseRole = segments?.[1] === "choose-role";
 
     if (!isSignedIn) {
-      // Not signed in - redirect to sign-in (unless already in auth group)
-      if (!inAuthGroup) {
+      // Auth-driven: unauthenticated stack entry is sign-in. Redirect unless already there.
+      const isSignInScreen = segments?.[1] === "sign-in";
+      if (!isSignInScreen) {
+        router.dismissAll?.();
         router.replace("/(auth)/sign-in");
       }
       return;

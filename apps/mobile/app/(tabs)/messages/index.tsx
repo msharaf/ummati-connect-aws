@@ -33,7 +33,7 @@ interface Match {
 export default function MessagesTab() {
   const router = useRouter();
 
-  const { data: matches, isLoading, refetch } = trpc.message.getMatchesWithLastMessage.useQuery(
+  const { data: matches, isLoading, refetch } = trpc.messages.getMatchesWithLastMessage.useQuery(
     undefined,
     {
       refetchInterval: 5000 // Poll every 5 seconds for "real-time" updates
