@@ -11,7 +11,7 @@ export default function Index() {
 
   // If not signed in, redirect to sign-in
   if (!isSignedIn) {
-    return <Redirect href="/(auth)/sign-in" />;
+    return <Redirect href="/(auth)/welcome" />;
   }
 
   // If signed in, the layout will handle redirects based on onboarding status

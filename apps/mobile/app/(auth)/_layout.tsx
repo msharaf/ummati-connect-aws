@@ -18,7 +18,7 @@ export default function AuthLayout() {
         headerTintColor: "#047857",
       }}
     >
-      <Stack.Screen name="sign-in" />
+      <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen name="choose-role" />
     </Stack>
   );

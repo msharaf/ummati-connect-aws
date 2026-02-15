@@ -33,12 +33,12 @@ function RootLayoutNavInner() {
   // Handle Android hardware back button globally
   useBackHandler(() => {
     const inTabsGroup = segments[0] === "(tabs)";
-    const isSignInScreen = segments?.[1] === "sign-in";
+    const isWelcomeScreen = segments?.[1] === "welcome";
 
     // Unauthenticated: prevent back into authenticated screens
     if (!isLoaded) return false;
     if (!isSignedIn) {
-      if (!isSignInScreen) router.replace("/(auth)/sign-in");
+      if (!isWelcomeScreen) router.replace("/(auth)/welcome");
       return true; // Always prevent - avoids returning to authenticated stack
     }
 
@@ -63,9 +63,9 @@ function RootLayoutNavInner() {
 
     if (!isSignedIn) {
       // Auth-driven: unauthenticated stack entry is sign-in. Redirect unless already there.
-      const isSignInScreen = segments?.[1] === "sign-in";
-      if (!isSignInScreen) {
-        router.replace("/(auth)/sign-in");
+      const isWelcomeScreen = segments?.[1] === "welcome";
+      if (!isWelcomeScreen) {
+        router.replace("/(auth)/welcome");
       }
       return;
     }
@@ -103,7 +103,7 @@ function RootLayoutNavInner() {
     <>
       <PushTokenRegistrar />
       <SafeAreaView className="flex-1 bg-emerald-50">
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <Slot />
       </SafeAreaView>
     </>
