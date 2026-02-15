@@ -1,65 +1,58 @@
-import { useSignIn, useOAuth } from "@clerk/clerk-expo";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import { useOAuth } from "@clerk/clerk-expo";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useState, useCallback } from "react";
-import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
-  const { signIn, setActive, isLoaded } = useSignIn();
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: "oauth_google" });
+  const { startOAuthFlow: startAppleOAuth } = useOAuth({ strategy: "oauth_apple" });
 
-  const onSignIn = useCallback(async () => {
-    if (!isLoaded) return;
+  const runOAuth = useCallback(
+    async (strategy: "oauth_google" | "oauth_apple") => {
+      const startFlow = strategy === "oauth_google" ? startGoogleOAuth : startAppleOAuth;
+      const label = strategy === "oauth_google" ? "Google" : "Apple";
 
-    setLoading(true);
-    setError("");
+      setLoading(strategy);
+      setError("");
 
-    try {
-      const result = await signIn.create({
-        identifier: email,
-        password
-      });
+      try {
+        const { createdSessionId, setActive: setOAuthActive } = await startFlow({
+          redirectUrl: Linking.createURL("/")
+        });
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+        if (createdSessionId && setOAuthActive) {
+          await setOAuthActive({ session: createdSessionId });
+        }
+      } catch (err: unknown) {
+        const code = err && typeof err === "object" && "code" in err
+          ? (err as { code?: string }).code
+          : null;
+        if (code === "ERR_REQUEST_CANCELED" || code === "user_cancelled") {
+          return;
+        }
+        const message = err && typeof err === "object" && "errors" in err
+          ? (err as { errors?: Array<{ message?: string }> }).errors?.[0]?.message
+          : null;
+        if (message) {
+          setError(message);
+        } else {
+          setError(`${label} sign in failed`);
+        }
+      } finally {
+        setLoading(null);
       }
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Sign in failed");
-    } finally {
-      setLoading(false);
-    }
-  }, [isLoaded, signIn, email, password, setActive]);
+    },
+    [startGoogleOAuth, startAppleOAuth]
+  );
 
-  const onGoogleSignIn = useCallback(async () => {
-    try {
-      const { createdSessionId, setActive: setOAuthActive } = await startGoogleOAuth({
-        redirectUrl: Linking.createURL("/")
-      });
-
-      if (createdSessionId && setOAuthActive) {
-        await setOAuthActive({ session: createdSessionId });
-      }
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Google sign in failed");
-    }
-  }, [startGoogleOAuth]);
-
-  if (!isLoaded) {
-    return (
-      <View className="flex-1 items-center justify-center bg-emerald-50">
-        <ActivityIndicator size="large" color="#047857" />
-      </View>
-    );
-  }
+  const onGoogleSignIn = useCallback(() => runOAuth("oauth_google"), [runOAuth]);
+  const onAppleSignIn = useCallback(() => runOAuth("oauth_apple"), [runOAuth]);
 
   return (
     <View className="flex-1 bg-emerald-50 p-6 justify-center">
@@ -71,51 +64,37 @@ export default function SignInScreen() {
         <Text className="text-red-500 text-center mb-4">{error}</Text>
       ) : null}
 
-      <TextInput
-        className="bg-white border border-gray-300 rounded-lg p-4 mb-4"
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-
-      <TextInput
-        className="bg-white border border-gray-300 rounded-lg p-4 mb-6"
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
       <TouchableOpacity
-        className="bg-emerald-600 rounded-lg p-4 mb-4"
-        onPress={onSignIn}
-        disabled={loading}
+        className="bg-white border border-gray-300 rounded-lg p-4 mb-4"
+        onPress={onGoogleSignIn}
+        disabled={!!loading}
       >
-        {loading ? (
-          <ActivityIndicator color="white" />
+        {loading === "oauth_google" ? (
+          <ActivityIndicator color="#047857" />
         ) : (
-          <Text className="text-white text-center font-semibold text-lg">
-            Sign In
+          <Text className="text-gray-700 text-center font-semibold text-lg">
+            Continue with Google
           </Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity
-        className="bg-white border border-gray-300 rounded-lg p-4 mb-6"
-        onPress={onGoogleSignIn}
+        className="bg-black rounded-lg p-4 mb-6"
+        onPress={onAppleSignIn}
+        disabled={!!loading}
       >
-        <Text className="text-gray-700 text-center font-semibold text-lg">
-          Continue with Google
-        </Text>
+        {loading === "oauth_apple" ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text className="text-white text-center font-semibold text-lg">
+            Continue with Apple
+          </Text>
+        )}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/(auth)/sign-up")}>
-        <Text className="text-emerald-600 text-center">
-          Don't have an account? Sign up
-        </Text>
-      </TouchableOpacity>
+      <Text className="text-gray-600 text-center text-sm">
+        New here? Continue with Apple or Google to create your account.
+      </Text>
     </View>
   );
 }

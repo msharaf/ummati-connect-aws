@@ -65,7 +65,6 @@ function RootLayoutNavInner() {
       // Auth-driven: unauthenticated stack entry is sign-in. Redirect unless already there.
       const isSignInScreen = segments?.[1] === "sign-in";
       if (!isSignInScreen) {
-        router.dismissAll?.();
         router.replace("/(auth)/sign-in");
       }
       return;
