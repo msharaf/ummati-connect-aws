@@ -97,6 +97,28 @@ pnpm dev:mobile   # Mobile app only
 
 ---
 
+## 📱 Physical Device Setup (Mobile)
+
+When running the mobile app on a **physical phone** (not simulator), the device must reach the API over your LAN:
+
+1. **Same WiFi** – Phone and development machine must be on the same network.
+2. **Windows Firewall** – Allow inbound connections on port 3001:
+   ```powershell
+   netsh advfirewall firewall add rule name="Ummati API 3001" dir=in action=allow protocol=TCP localport=3001
+   ```
+3. **Set `EXPO_PUBLIC_API_URL`** – In `apps/mobile/.env`, use your PC's LAN IP (run `ipconfig` to find it):
+   ```env
+   EXPO_PUBLIC_API_URL=http://192.168.1.100:3001
+   ```
+4. **Restart Expo with cache clear**:
+   ```bash
+   pnpm --filter mobile exec npx expo start --clear
+   ```
+
+**Verify**: Open `http://<LAN_IP>:3001/health` in phone Safari – should return `{"status":"ok"}`. If it fails, check firewall and WiFi.
+
+---
+
 ## 📚 More Information
 
 - **Detailed Setup**: See [`docs/LOCAL_DEV.md`](docs/LOCAL_DEV.md) - Complete step-by-step guide with troubleshooting

@@ -7,6 +7,7 @@ import { BackHandler, Platform } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { ClerkProvider, publishableKey, tokenCache } from "../src/lib/clerk";
 import { TRPCProvider, queryClient } from "../src/lib/trpc";
+import { ApiReachabilityGate } from "../src/components/ApiReachabilityGate";
 import { trpc } from "../src/lib/trpc";
 import { usePushToken } from "../hooks/usePushToken";
 import { useBackHandler } from "../src/hooks/useBackHandler";
@@ -54,46 +55,40 @@ function RootLayoutNavInner() {
     return false;
   });
 
+  // AUTH GATE (single source of truth) - controls navigation based on auth state
   useEffect(() => {
     if (!isLoaded) return;
 
     const inAuthGroup = segments[0] === "(auth)";
-    const inTabsGroup = segments[0] === "(tabs)";
+    const isWelcomeScreen = segments?.[1] === "welcome";
     const isChooseRole = segments?.[1] === "choose-role";
 
+    // NOT signed in: only auth stack; force welcome
     if (!isSignedIn) {
-      // Auth-driven: unauthenticated stack entry is sign-in. Redirect unless already there.
-      const isWelcomeScreen = segments?.[1] === "welcome";
       if (!isWelcomeScreen) {
         router.replace("/(auth)/welcome");
       }
       return;
     }
 
-    // User is signed in - check onboarding status
-    if (isLoadingUser) {
-      // Still loading user data, wait
-      return;
-    }
+    // Signed in: wait for user data before routing
+    if (isLoadingUser) return;
 
-    // User is signed in and data is loaded
+    // Signed in, no role / onboarding incomplete -> select-mode (choose-role)
     if (!userData?.onboardingComplete) {
-      // Onboarding not complete - redirect to choose-role (unless already there)
       if (!isChooseRole) {
         router.replace("/(auth)/choose-role");
       }
       return;
     }
 
-    // User has completed onboarding
+    // Signed in, onboarding complete: redirect away from auth screens to app
     if (inAuthGroup && !isChooseRole) {
-      // User is in auth group but onboarding is complete - redirect to appropriate dashboard
       if (userData.role === "INVESTOR") {
         router.replace("/(tabs)/investor");
       } else if (userData.role === "VISIONARY") {
         router.replace("/(tabs)/visionary/dashboard");
       } else {
-        // Default to swipe screen
         router.replace("/(tabs)/swipe");
       }
     }
@@ -102,10 +97,12 @@ function RootLayoutNavInner() {
   return (
     <>
       <PushTokenRegistrar />
-      <SafeAreaView className="flex-1 bg-emerald-50">
-        <StatusBar style="light" />
-        <Slot />
-      </SafeAreaView>
+      <ApiReachabilityGate>
+        <SafeAreaView className="flex-1 bg-emerald-50">
+          <StatusBar style="light" />
+          <Slot />
+        </SafeAreaView>
+      </ApiReachabilityGate>
     </>
   );
 }

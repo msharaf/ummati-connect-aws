@@ -10,26 +10,22 @@ const handler = async (req: NextRequest) => {
     req,
     router: rootRouter,
     createContext: async () => {
-      // Get Clerk user ID from Next.js server-side auth
-      // auth() automatically reads from cookies in the request
       const { userId } = await auth();
-
-      // Also check for Authorization header (for mobile clients)
       const authHeader = req.headers.get("Authorization");
-      const authToken = authHeader?.replace("Bearer ", "") || null;
+      const authToken =
+        authHeader?.startsWith("Bearer ")
+          ? authHeader.slice(7).trim()
+          : authHeader?.trim() || null;
 
-      // Debug logging in development
-      if (process.env.NODE_ENV === "development") {
-        if (userId) {
-          console.log("✅ tRPC context: User authenticated", userId);
-        } else {
-          console.warn("⚠️ tRPC context: No userId - user not authenticated");
-        }
+      if (process.env.NODE_ENV !== "production") {
+        console.log(
+          `   🔑 tRPC: authHeader=${authToken ? "present" : "missing"}, userId from cookies=${userId ?? "null"}`
+        );
       }
 
       return createContext({
-        userId: userId || null,
-        authToken
+        userId: userId ?? null,
+        authToken: authToken || null
       });
     },
     onError:

@@ -130,24 +130,31 @@ const server = createServer(async (req, res) => {
         req: fetchReq,
         router: rootRouter,
         createContext: async () => {
-          // Extract auth token from headers
-          const authHeader = req.headers.authorization;
-          const authToken = authHeader?.replace("Bearer ", "") || null;
-          
+          const authHeader = req.headers.authorization ?? req.headers["authorization"];
+          const hasBearer =
+            typeof authHeader === "string" && authHeader.startsWith("Bearer ");
+          const authToken = hasBearer
+            ? (authHeader as string).slice(7).trim()
+            : typeof authHeader === "string"
+              ? authHeader.trim()
+              : null;
+
           if (process.env.NODE_ENV !== "production") {
-            console.log(`   🔑 Auth token: ${authToken ? "present" : "missing"}`);
+            console.log(
+              `   🔑 Auth: header=${authToken ? "present" : "missing"}, startsWith Bearer=${hasBearer}`
+            );
           }
-          
+
           const ctx = await createContext({
             userId: null,
             authToken
           });
-          
+
           if (process.env.NODE_ENV !== "production") {
             const contextTime = Date.now() - contextStartTime;
-            console.log(`   ✅ Context created (${contextTime}ms) - userId: ${ctx.userId || "null"}`);
+            console.log(`   ✅ Context (${contextTime}ms) - userId: ${ctx.userId ?? "null"}`);
           }
-          
+
           return ctx;
         },
         onError:
@@ -220,12 +227,19 @@ const server = createServer(async (req, res) => {
   );
 });
 
+function safeKeyPrefix(key: string | undefined, len = 12): string {
+  if (!key) return "none";
+  return key.slice(0, len) + (key.length > len ? "..." : "");
+}
+
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 API server running on http://0.0.0.0:${PORT}`);
   console.log(`   Accessible at: http://localhost:${PORT} (local)`);
   console.log(`   tRPC endpoint: http://localhost:${PORT}/trpc`);
   console.log(`   Health check: http://localhost:${PORT}/health`);
-  console.log(`   CLERK_SECRET_KEY: ${process.env.CLERK_SECRET_KEY ? "✅ Set" : "❌ Missing"}`);
+  console.log(
+    `   CLERK_SECRET_KEY: ${process.env.CLERK_SECRET_KEY ? "✅ " + safeKeyPrefix(process.env.CLERK_SECRET_KEY) : "❌ Missing"}`
+  );
   console.log(`   DATABASE_URL: ${process.env.DATABASE_URL ? "✅ Set" : "❌ Missing"}`);
 });
 

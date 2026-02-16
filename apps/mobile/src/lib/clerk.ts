@@ -7,6 +7,11 @@ const publishableKey =
   process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ??
   "";
 
+if (__DEV__ && publishableKey) {
+  // eslint-disable-next-line no-console
+  console.log("[Clerk] publishableKey prefix:", publishableKey.slice(0, 20) + "...");
+}
+
 if (!publishableKey) {
   throw new Error(
     "Missing Clerk Publishable Key. Set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your environment variables."

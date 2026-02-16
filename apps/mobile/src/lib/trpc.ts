@@ -1,53 +1,90 @@
 import { httpBatchLink, loggerLink } from "@trpc/client";
-import React from "react";
-import { useAuth } from "@clerk/clerk-expo";
+import React, { useMemo, useRef, useEffect } from "react";
+import { useAuth, useClerk } from "@clerk/clerk-expo";
 import { createTRPCReact } from "@trpc/react-query";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState, useRef, useEffect } from "react";
+import { useRouter } from "expo-router";
+import { Alert } from "react-native";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import superjson from "superjson";
 import type { AppRouter } from "@ummati/api";
-import { useAuthStore } from "../store/useAuthStore";
 
 export const trpc = createTRPCReact<AppRouter>();
 
+function is401Error(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { data?: { code?: string; httpStatus?: number }; meta?: { response?: { status?: number } } };
+  return (
+    e.data?.code === "UNAUTHORIZED" ||
+    e.data?.httpStatus === 401 ||
+    e.meta?.response?.status === 401
+  );
+}
+
+const LOCALHOST_PATTERN = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?/i;
+
+function isValidBaseUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url.startsWith("http") ? url : `http://${url}`);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isLocalhostUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url.startsWith("http") ? url : `http://${url}`);
+    return (
+      parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1"
+    );
+  } catch {
+    return LOCALHOST_PATTERN.test(url);
+  }
+}
+
 /**
- * Get the base URL for tRPC requests
- * - On web: Uses localhost or relative path
- * - On mobile: Uses LAN IP (set via EXPO_PUBLIC_API_URL) or localhost
- * - In production: Uses environment variable
+ * Get the base URL for tRPC requests.
+ * Native: uses ONLY EXPO_PUBLIC_API_URL (no heuristic guessing).
+ * Web: relative URL (empty string).
  */
 export const getBaseUrl = (): string => {
-  // Check for explicit API URL in environment
-  const envUrl =
-    Constants.expoConfig?.extra?.apiUrl ??
-    Constants.manifest?.extra?.apiUrl ??
-    process.env.EXPO_PUBLIC_API_URL;
-
-  if (envUrl) {
-    return envUrl as string;
-  }
-
-  // On web platform, use relative path or localhost
   if (Platform.OS === "web") {
     return typeof window !== "undefined" ? "" : "http://localhost:3000";
   }
+  const url =
+    process.env.EXPO_PUBLIC_API_URL ??
+    Constants.expoConfig?.extra?.apiUrl ??
+    "http://localhost:3001";
 
-  // On native platforms (mobile)
-  // For physical devices, set EXPO_PUBLIC_API_URL to your LAN IP:
-  // Example: EXPO_PUBLIC_API_URL=http://192.168.1.100:3001
-  // For iOS simulator or Android emulator, localhost works fine
-  const lanIp = Constants.expoConfig?.hostUri?.split(":")[0];
-  if (lanIp && lanIp !== "localhost" && lanIp !== "127.0.0.1") {
-    return `http://${lanIp}:3001`;
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log("[tRPC] Resolved baseUrl:", url);
+    if (!isValidBaseUrl(url)) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[tRPC] EXPO_PUBLIC_API_URL must include http:// or https:// and a host. " +
+          "Fix: Set EXPO_PUBLIC_API_URL=http://<LAN_IP>:3001 in apps/mobile/.env"
+      );
+    }
+    if (isLocalhostUrl(url)) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[tRPC] EXPO_PUBLIC_API_URL is localhost. On a physical device this will fail. " +
+          "Fix: Set EXPO_PUBLIC_API_URL=http://<LAN_IP>:3001 in apps/mobile/.env (run ipconfig for LAN IP)"
+      );
+    }
   }
-
-  // Fallback to localhost (works for iOS simulator and Android emulator)
-  // Default to standalone API server on port 3001
-  // If using Next.js web app, set EXPO_PUBLIC_API_URL=http://localhost:3000
-  return "http://localhost:3001";
+  return url;
 };
+
+/**
+ * Get the tRPC URL path. Standalone API (port 3001) uses /trpc; Next.js (port 3000) uses /api/trpc.
+ */
+function getTrpcPath(baseUrl: string): string {
+  return baseUrl.includes(":3000") ? "/api/trpc" : "/trpc";
+}
 
 // Create a singleton QueryClient instance
 let queryClientInstance: QueryClient | null = null;
@@ -75,13 +112,59 @@ export const queryClient = getQueryClient();
 
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
   const { getToken } = useAuth();
+  const { signOut } = useClerk();
+  const router = useRouter();
+  const handling401Ref = useRef(false);
   const getTokenRef = useRef(getToken);
   useEffect(() => {
     getTokenRef.current = getToken;
   }, [getToken]);
 
-  const [trpcClient] = useState(() =>
-    trpc.createClient({
+  useEffect(() => {
+    const handle401 = async () => {
+      if (handling401Ref.current) return;
+      handling401Ref.current = true;
+      try {
+        await signOut();
+        router.replace("/(auth)/welcome");
+        Alert.alert("Session expired", "Please sign in again.");
+      } catch (e) {
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn("[tRPC] 401 signOut failed:", e);
+        }
+        router.replace("/(auth)/welcome");
+      } finally {
+        handling401Ref.current = false;
+      }
+    };
+
+    const unsubQuery = queryClient.getQueryCache().subscribe((event) => {
+      if (event?.type === "updated" && event.query.state.status === "error") {
+        const err = event.query.state.error;
+        if (is401Error(err)) handle401();
+      }
+    });
+    const unsubMutation = queryClient.getMutationCache().subscribe((event) => {
+      if (event?.type === "updated" && event.mutation.state.status === "error") {
+        const err = event.mutation.state.error;
+        if (is401Error(err)) handle401();
+      }
+    });
+    return () => {
+      unsubQuery();
+      unsubMutation();
+    };
+  }, [signOut, router]);
+
+  const trpcClient = useMemo(() => {
+    const baseUrl = getBaseUrl();
+    const url = `${baseUrl}${getTrpcPath(baseUrl)}`;
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log("[tRPC] Client created (once), baseUrl:", baseUrl, "url:", url);
+    }
+    return trpc.createClient({
       transformer: superjson,
       links: [
         loggerLink({
@@ -90,39 +173,47 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
             (opts.direction === "down" && opts.result instanceof Error)
         }),
         httpBatchLink({
-          url: (() => {
-            const baseUrl = getBaseUrl();
-            // If using Next.js (port 3000), use /api/trpc endpoint
-            // If using standalone API server (port 3001), use /trpc endpoint
-            if (baseUrl.includes(':3000')) {
-              return `${baseUrl}/api/trpc`;
-            }
-            return `${baseUrl}/trpc`;
-          })(),
-          fetch: (url, options) => {
-            // Add timeout to prevent hanging requests
-            // 30 seconds for tunnel/slow connections
+          url,
+          fetch: (fetchUrl, options) => {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 30000);
-            
-            return fetch(url, {
+            return fetch(fetchUrl, {
               ...options,
               signal: controller.signal
-            }).finally(() => {
-              clearTimeout(timeoutId);
-            });
+            }).finally(() => clearTimeout(timeoutId));
           },
           async headers() {
-            // Use ref to always get latest getToken (avoids stale closure after sign-in)
-            const token = await getTokenRef.current();
-            return {
-              ...(token ? { Authorization: `Bearer ${token}` } : {})
-            };
+            try {
+              const token = await getTokenRef.current();
+              const tokenPresent = !!(token && typeof token === "string" && token.length > 0);
+              const headers: Record<string, string> = {};
+              if (tokenPresent) {
+                headers.Authorization = `Bearer ${token}`;
+              }
+              if (__DEV__) {
+                // eslint-disable-next-line no-console
+                console.log(
+                  "[tRPC] Auth: token present=",
+                  tokenPresent,
+                  tokenPresent ? `length=${(token as string).length}` : ""
+                );
+              }
+              return headers;
+            } catch (e) {
+              if (__DEV__) {
+                // eslint-disable-next-line no-console
+                console.warn(
+                  "[tRPC] getToken failed:",
+                  e instanceof Error ? e.message : e
+                );
+              }
+              return {};
+            }
           }
         })
       ]
-    })
-  );
+    });
+  }, []); // Stable: baseUrl from env, getToken via ref
 
   return React.createElement(
     trpc.Provider,

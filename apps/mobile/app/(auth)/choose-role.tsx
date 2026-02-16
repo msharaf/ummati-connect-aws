@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 
@@ -15,21 +15,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { trpc } from "../../src/lib/trpc";
 import { BackButton } from "../../src/components/BackButton";
 
+type Role = "INVESTOR" | "VISIONARY";
+
 export default function ChooseRoleScreen() {
   const router = useRouter();
   const utils = trpc.useUtils();
+  const [pendingRole, setPendingRole] = useState<Role | null>(null);
+  const submittingRef = useRef(false);
 
-  // Get current user
-  const { data: userData, isLoading: isLoadingUser } = trpc.user.me.useQuery();
+  const { data: userData, isLoading: isLoadingUser, error: userError } = trpc.user.me.useQuery(
+    undefined,
+    { retry: false }
+  );
 
-  // Set role mutation
   const setRole = trpc.user.setRole.useMutation({
     onSuccess: (data) => {
-      // Invalidate user queries to refetch updated data
       utils.user.me.invalidate();
       utils.user.getMe.invalidate();
-      
-      // Redirect based on role
       if (data.role === "INVESTOR") {
         router.replace("/(tabs)/investor");
       } else if (data.role === "VISIONARY") {
@@ -37,11 +39,17 @@ export default function ChooseRoleScreen() {
       }
     },
     onError: (error) => {
-      alert(`Failed to set role: ${error.message}`);
+      const is401 = (error as { data?: { code?: string } }).data?.code === "UNAUTHORIZED";
+      if (!is401) {
+        Alert.alert("Error", `Failed to set role: ${error.message}`);
+      }
+    },
+    onSettled: () => {
+      submittingRef.current = false;
+      setPendingRole(null);
     }
   });
 
-  // If user already completed onboarding, redirect to their dashboard
   useEffect(() => {
     if (userData?.onboardingComplete && userData?.role) {
       if (userData.role === "INVESTOR") {
@@ -52,11 +60,18 @@ export default function ChooseRoleScreen() {
     }
   }, [userData, router]);
 
-  const handleRoleSelect = async (role: "INVESTOR" | "VISIONARY") => {
-    setRole.mutate({ role });
-  };
+  const handleRoleSelect = useCallback(
+    (role: Role) => {
+      if (submittingRef.current || pendingRole !== null) return;
+      submittingRef.current = true;
+      setPendingRole(role);
+      setRole.mutate({ role });
+    },
+    [pendingRole, setRole]
+  );
 
-  // Show loading state
+  const isPending = pendingRole !== null;
+
   if (isLoadingUser) {
     return (
       <View className="flex-1 items-center justify-center bg-emerald-50">
@@ -66,7 +81,21 @@ export default function ChooseRoleScreen() {
     );
   }
 
-  // If user has completed onboarding, show loading while redirecting
+  if (userError) {
+    const is401 =
+      (userError as { data?: { code?: string } }).data?.code === "UNAUTHORIZED";
+    return (
+      <View className="flex-1 items-center justify-center bg-emerald-50 p-6">
+        <Text className="text-red-600 text-center">
+          {is401 ? "Please sign in again." : userError.message ?? "Failed to load"}
+        </Text>
+        <Text className="text-gray-500 text-center mt-2 text-sm">
+          {is401 ? "Redirecting to sign in..." : ""}
+        </Text>
+      </View>
+    );
+  }
+
   if (userData?.onboardingComplete) {
     return (
       <View className="flex-1 items-center justify-center bg-emerald-50">
@@ -106,7 +135,7 @@ export default function ChooseRoleScreen() {
           {/* Investor Button */}
           <TouchableOpacity
             onPress={() => handleRoleSelect("INVESTOR")}
-            disabled={setRole.isPending}
+            disabled={isPending}
             activeOpacity={0.8}
             className="bg-white rounded-2xl shadow-lg p-6 border-2 border-emerald-200"
           >
@@ -130,7 +159,7 @@ export default function ChooseRoleScreen() {
               <Text className="text-gray-600 text-center mb-4">
                 Discover and invest in halal-aligned startups that match your values
               </Text>
-              {setRole.isPending ? (
+              {pendingRole === "INVESTOR" ? (
                 <View className="flex-row items-center gap-2">
                   <ActivityIndicator size="small" color="#047857" />
                   <Text className="text-emerald-600 font-semibold">Setting...</Text>
@@ -147,7 +176,7 @@ export default function ChooseRoleScreen() {
           {/* Visionary Button */}
           <TouchableOpacity
             onPress={() => handleRoleSelect("VISIONARY")}
-            disabled={setRole.isPending}
+            disabled={isPending}
             activeOpacity={0.8}
             className="bg-white rounded-2xl shadow-lg p-6 border-2 border-emerald-200"
           >
@@ -171,7 +200,7 @@ export default function ChooseRoleScreen() {
               <Text className="text-gray-600 text-center mb-4">
                 Showcase your startup and connect with investors who share your vision
               </Text>
-              {setRole.isPending ? (
+              {pendingRole === "VISIONARY" ? (
                 <View className="flex-row items-center gap-2">
                   <ActivityIndicator size="small" color="#047857" />
                   <Text className="text-emerald-600 font-semibold">Setting...</Text>

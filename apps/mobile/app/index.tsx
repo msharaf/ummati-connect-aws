@@ -4,18 +4,13 @@ import { useAuth } from "@clerk/clerk-expo";
 export default function Index() {
   const { isSignedIn, isLoaded } = useAuth();
 
-  // Show loading while checking auth
-  if (!isLoaded) {
-    return null; // Or a loading screen
-  }
+  if (!isLoaded) return null;
 
-  // If not signed in, redirect to sign-in
   if (!isSignedIn) {
     return <Redirect href="/(auth)/welcome" />;
   }
 
-  // If signed in, the layout will handle redirects based on onboarding status
-  // Default to swipe screen
-  return <Redirect href="/(tabs)/swipe" />;
+  // Signed in: redirect to select-mode (choose-role); auth gate in _layout will redirect to tabs if onboarding complete
+  return <Redirect href="/(auth)/choose-role" />;
 }
 
