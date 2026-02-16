@@ -21,15 +21,18 @@ const t = initTRPC.context<Context>().create({
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
-// Protected procedure - requires authentication
+/**
+ * Protected procedure - throws UNAUTHORIZED when ctx.userId is null.
+ * ctx.userId is populated by createContext after verifying Bearer token.
+ */
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
-  if (!ctx.userId) {
+  if (ctx.userId == null) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
       ...ctx,
-      userId: ctx.userId // TypeScript now knows userId is not null
+      userId: ctx.userId
     }
   });
 });

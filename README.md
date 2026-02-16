@@ -119,6 +119,39 @@ When running the mobile app on a **physical phone** (not simulator), the device 
 
 ---
 
+## 🔐 Authentication (Clerk + tRPC)
+
+Auth is verified **server-side only** via Bearer tokens. No Next.js middleware protects the API.
+
+### Flow
+
+1. **Clients** (web + mobile) call `getToken({ template: "ummati-api" })` from Clerk and attach `Authorization: Bearer <token>` to every tRPC request.
+2. **Server** (`createContext`) reads the header, verifies the token with Clerk, and sets `ctx.auth = { userId, sessionId, claims }` or `ctx.auth = null`.
+3. **protectedProcedure** throws `UNAUTHORIZED` if `ctx.auth?.userId` is missing.
+
+### Required env vars
+
+| Location | Variable | Purpose |
+|----------|----------|---------|
+| `packages/api/.env` | `CLERK_SECRET_KEY` | Verify tokens (server only) |
+| `apps/web/.env.local` | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk client |
+| `apps/mobile/.env` | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk client |
+
+### Token template `ummati-api`
+
+Create a JWT template in [Clerk Dashboard](https://dashboard.clerk.com) → JWT Templates:
+
+- **Name**: `ummati-api`
+- **Claims**: Add `"aud": "ummati-api"` (or leave default)
+
+Both web and mobile use `getToken({ template: "ummati-api" })`. If the template doesn't exist, clients fall back to the default session token; the server accepts both during migration.
+
+### Gating `user.me`
+
+Calls to `user.me` should be gated with `enabled: isSignedIn && isLoaded` so the first request is not sent before Clerk is ready.
+
+---
+
 ## 📚 More Information
 
 - **Detailed Setup**: See [`docs/LOCAL_DEV.md`](docs/LOCAL_DEV.md) - Complete step-by-step guide with troubleshooting

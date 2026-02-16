@@ -4,9 +4,15 @@ import { decodeJwt } from "jose";
 
 import { verifyClerkJwt } from "./auth/verifyClerkJwt";
 
+import { UMMATI_API_TOKEN_TEMPLATE } from "./constants";
+
+export { UMMATI_API_TOKEN_TEMPLATE };
+
 export interface CreateContextOptions {
-  userId?: string | null;
+  /** Bearer token (stripped of "Bearer " prefix). */
   authToken?: string | null;
+  /** Pre-authenticated userId (e.g. from web auth()); skips token verification when set */
+  userId?: string | null;
 }
 
 /** Derive a short reason from verify error for dev logging. */
@@ -27,6 +33,12 @@ const clerk = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY
 });
 
+/**
+ * Creates tRPC context from auth token.
+ * - Accepts authToken (Bearer stripped by server.ts / route handler)
+ * - Verifies via Clerk JWKS (verifyClerkJwt); never throws, returns userId=null on failure
+ * - Populates ctx.userId and ctx.auth when verification succeeds
+ */
 export async function createContext(opts: CreateContextOptions = {}) {
   let userId: string | null = opts.userId ?? null;
   let auth: { iss?: string; aud?: unknown } | null = null;

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { trpc } from "../src/lib/trpc";
 
 interface RoleGuardProps {
@@ -12,7 +13,10 @@ interface RoleGuardProps {
 export function RoleGuard({ children, requiredRole }: RoleGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: userData, isLoading } = trpc.user.me.useQuery();
+  const { isSignedIn, isLoaded } = useUser();
+  const { data: userData, isLoading } = trpc.user.me.useQuery(undefined, {
+    enabled: isSignedIn && isLoaded
+  });
 
   useEffect(() => {
     if (isLoading) return;

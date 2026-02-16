@@ -7,6 +7,8 @@
     "module": "es2015",
     "paths": {
       "@ummati/api": ["../../packages/api/src"],
+      "@ummati/api/types": ["../../packages/api/src/types.ts"],
+      "@ummati/api/constants": ["../../packages/api/src/constants.ts"],
       "@ummati/db": ["../../packages/db/src"]
     },
     "types": ["nativewind/types", "react-native", "expo"]

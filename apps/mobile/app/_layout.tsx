@@ -117,6 +117,11 @@ function RootLayoutNav() {
   );
 }
 
+/**
+ * Root layout: ClerkProvider wraps entire app.
+ * All useAuth/useClerk calls must be inside this tree.
+ * Auth-dependent providers (TRPCProvider, etc.) are below ClerkProvider.
+ */
 export default function RootLayout() {
   const router = useRouter();
 

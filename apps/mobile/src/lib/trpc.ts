@@ -8,7 +8,9 @@ import { Alert } from "react-native";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import superjson from "superjson";
-import type { AppRouter } from "@ummati/api";
+import type { AppRouter } from "@ummati/api/types";
+import { UMMATI_API_TOKEN_TEMPLATE } from "@ummati/api/constants";
+import { jwtDecode } from "jwt-decode";
 
 export const trpc = createTRPCReact<AppRouter>();
 
@@ -111,11 +113,14 @@ export const getQueryClient = (): QueryClient => {
 export const queryClient = getQueryClient();
 
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const { signOut } = useClerk();
   const router = useRouter();
   const handling401Ref = useRef(false);
   const getTokenRef = useRef(getToken);
+  const lastRequestHadTokenRef = useRef(false);
+  const authStateRef = useRef({ isLoaded: false, isSignedIn: false });
+  authStateRef.current = { isLoaded, isSignedIn };
   useEffect(() => {
     getTokenRef.current = getToken;
   }, [getToken]);
@@ -123,6 +128,17 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handle401 = async () => {
       if (handling401Ref.current) return;
+      const { isLoaded: loaded, isSignedIn: signedIn } = authStateRef.current;
+      if (!loaded || !signedIn || !lastRequestHadTokenRef.current) {
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.log(
+            "[tRPC] 401 ignored: auth not ready or no token sent",
+            { loaded, signedIn, hadToken: lastRequestHadTokenRef.current }
+          );
+        }
+        return;
+      }
       handling401Ref.current = true;
       try {
         await signOut();
@@ -183,19 +199,38 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
             }).finally(() => clearTimeout(timeoutId));
           },
           async headers() {
+            lastRequestHadTokenRef.current = false;
             try {
-              const token = await getTokenRef.current();
-              const tokenPresent = !!(token && typeof token === "string" && token.length > 0);
+              const token = await getTokenRef.current({
+                template: UMMATI_API_TOKEN_TEMPLATE
+              });
+              const tokenPresent = !!(
+                token && typeof token === "string" && token.length > 0
+              );
+              lastRequestHadTokenRef.current = tokenPresent;
               const headers: Record<string, string> = {};
               if (tokenPresent) {
                 headers.Authorization = `Bearer ${token}`;
               }
               if (__DEV__) {
+                let decoded: { aud?: unknown; iss?: unknown } | null = null;
+                try {
+                  if (token) {
+                    decoded = jwtDecode<{ aud?: unknown; iss?: unknown }>(token);
+                  }
+                } catch {
+                  /* decode failed, use n/a */
+                }
                 // eslint-disable-next-line no-console
                 console.log(
-                  "[tRPC] Auth: token present=",
+                  "[tRPC] JWT token present=",
                   tokenPresent,
-                  tokenPresent ? `length=${(token as string).length}` : ""
+                  "length=",
+                  tokenPresent ? (token as string).length : 0,
+                  "aud:",
+                  decoded?.aud ?? "n/a",
+                  "iss:",
+                  decoded?.iss ?? "n/a"
                 );
               }
               return headers;

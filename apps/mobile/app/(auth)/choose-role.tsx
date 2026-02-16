@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { useRouter } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 
 // Type cast to fix TypeScript error with expo-linear-gradient
@@ -20,12 +21,13 @@ type Role = "INVESTOR" | "VISIONARY";
 export default function ChooseRoleScreen() {
   const router = useRouter();
   const utils = trpc.useUtils();
+  const { isLoaded, isSignedIn } = useAuth();
   const [pendingRole, setPendingRole] = useState<Role | null>(null);
   const submittingRef = useRef(false);
 
   const { data: userData, isLoading: isLoadingUser, error: userError } = trpc.user.me.useQuery(
     undefined,
-    { retry: false }
+    { retry: false, enabled: isLoaded && isSignedIn }
   );
 
   const setRole = trpc.user.setRole.useMutation({

@@ -45,26 +45,7 @@ function createTestServer() {
         endpoint: "/trpc",
         req: fetchReq,
         router: rootRouter,
-        createContext: async () => {
-          // Extract userId from token if valid
-          let userId: string | null = null;
-          if (authToken) {
-            try {
-              // For testing, we can decode the token to get userId
-              // In real app, Clerk would verify this
-              const jwt = require("jsonwebtoken");
-              const decoded = jwt.decode(authToken) as any;
-              userId = decoded?.sub || null;
-            } catch (e) {
-              // Invalid token, userId stays null
-            }
-          }
-          
-          return createContext({
-            userId,
-            authToken,
-          });
-        },
+        createContext: async () => createContext({ authToken }),
       });
 
       response.headers.forEach((value, key) => {

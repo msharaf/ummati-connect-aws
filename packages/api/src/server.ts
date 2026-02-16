@@ -3,10 +3,12 @@
  * In production, the API is used via Next.js API routes
  */
 
-// Load environment variables from .env file
+// Load environment variables from packages/api/.env (reliable regardless of cwd)
 import { config } from "dotenv";
-import { resolve } from "path";
-config({ path: resolve(process.cwd(), ".env") });
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: resolve(__dirname, "..", ".env") });
 
 import { createServer } from "http";
 import { URL } from "url";
@@ -139,15 +141,13 @@ const server = createServer(async (req, res) => {
               : null;
 
           if (process.env.NODE_ENV !== "production") {
+            const authHeaderExists = !!authHeader;
             console.log(
-              `   🔑 Auth: header=${authToken ? "present" : "missing"}, startsWith Bearer=${hasBearer}`
+              `   🔑 Auth: header exists=${authHeaderExists}, isBearer=${hasBearer}, token extracted=${!!authToken}`
             );
           }
 
-          const ctx = await createContext({
-            userId: null,
-            authToken
-          });
+          const ctx = await createContext({ authToken });
 
           if (process.env.NODE_ENV !== "production") {
             const contextTime = Date.now() - contextStartTime;

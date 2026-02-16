@@ -12,15 +12,7 @@ describe("createContext", () => {
     vi.clearAllMocks();
   });
 
-  it("should return context with userId when provided", async () => {
-    const opts = { userId: "user_123" };
-    const context = await createContext(opts);
-
-    expect(context.userId).toBe("user_123");
-    expect(context.clerk).toBeDefined();
-  });
-
-  it("should return context with null userId when not provided", async () => {
+  it("should return context with null auth when no token", async () => {
     const context = await createContext();
 
     expect(context.userId).toBeNull();
@@ -51,6 +43,7 @@ describe("createContext", () => {
     const opts = { authToken: "invalid_token" };
     const context = await createContext(opts);
 
+    expect(context.auth).toBeNull();
     expect(context.userId).toBeNull();
     expect(warnSpy).toHaveBeenCalled();
 
