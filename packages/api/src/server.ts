@@ -16,10 +16,9 @@ import { createContext } from "./context";
 
 const PORT = Number(process.env.PORT ?? 3001);
 
-// Check for required environment variables
-if (!process.env.CLERK_SECRET_KEY) {
-  console.warn("⚠️  CLERK_SECRET_KEY not set - authentication will fail!");
-  console.warn("   Create packages/api/.env with CLERK_SECRET_KEY=sk_test_...");
+// JWT verification uses JWKS (no secret key). CLERK_SECRET_KEY optional for Clerk API calls.
+if (!process.env.CLERK_JWT_AUDIENCE) {
+  console.log("   CLERK_JWT_AUDIENCE not set - using default: ummati-api");
 }
 
 // CORS headers for mobile app
@@ -209,10 +208,21 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  // Health check
+  // Health check (dev: shows auth env; no secrets)
   if (url.pathname === "/health") {
+    const debug =
+      process.env.NODE_ENV !== "production"
+        ? {
+            CLERK_JWT_AUDIENCE: process.env.CLERK_JWT_AUDIENCE ?? "ummati-api (default)",
+            CLERK_ISSUER: process.env.CLERK_ISSUER ? "set" : "not set"
+          }
+        : undefined;
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "ok" }));
+    res.end(
+      JSON.stringify(
+        debug ? { status: "ok", auth: debug } : { status: "ok" }
+      )
+    );
     return;
   }
 
@@ -227,18 +237,19 @@ const server = createServer(async (req, res) => {
   );
 });
 
-function safeKeyPrefix(key: string | undefined, len = 12): string {
-  if (!key) return "none";
-  return key.slice(0, len) + (key.length > len ? "..." : "");
-}
-
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 API server running on http://0.0.0.0:${PORT}`);
   console.log(`   Accessible at: http://localhost:${PORT} (local)`);
   console.log(`   tRPC endpoint: http://localhost:${PORT}/trpc`);
   console.log(`   Health check: http://localhost:${PORT}/health`);
   console.log(
-    `   CLERK_SECRET_KEY: ${process.env.CLERK_SECRET_KEY ? "✅ " + safeKeyPrefix(process.env.CLERK_SECRET_KEY) : "❌ Missing"}`
+    `   CLERK_JWT_AUDIENCE: ${process.env.CLERK_JWT_AUDIENCE ?? "ummati-api (default)"}`
+  );
+  console.log(
+    `   CLERK_ISSUER: ${process.env.CLERK_ISSUER ? "set" : "not set (optional)"}`
+  );
+  console.log(
+    `   CLERK_SECRET_KEY: ${process.env.CLERK_SECRET_KEY ? "set (for Clerk API)" : "not set"}`
   );
   console.log(`   DATABASE_URL: ${process.env.DATABASE_URL ? "✅ Set" : "❌ Missing"}`);
 });

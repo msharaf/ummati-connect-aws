@@ -20,6 +20,7 @@
     "@ummati/db": "workspace:*",
     "@ummati/notifications": "workspace:*",
     "dotenv": "^17.2.3",
+    "jose": "^6.1.3",
     "superjson": "^2.2.1",
     "zod": "^3.22.4"
   },

@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createContext } from "./context";
-import { verifyToken } from "@clerk/backend";
+import { verifyClerkJwt } from "./auth/verifyClerkJwt";
 
-// Mock @clerk/backend
+vi.mock("./auth/verifyClerkJwt");
 vi.mock("@clerk/backend", () => ({
-  createClerkClient: vi.fn(() => ({})),
-  verifyToken: vi.fn()
+  createClerkClient: vi.fn(() => ({}))
 }));
 
 describe("createContext", () => {
@@ -29,44 +28,37 @@ describe("createContext", () => {
   });
 
   it("should verify token and set userId when authToken is provided", async () => {
-    // Set CLERK_SECRET_KEY for test
-    const originalSecretKey = process.env.CLERK_SECRET_KEY;
-    process.env.CLERK_SECRET_KEY = "test-secret-key";
-    
-    const mockVerifyToken = vi.mocked(verifyToken);
-    mockVerifyToken.mockResolvedValue({ sub: "user_456" } as Awaited<ReturnType<typeof verifyToken>>);
+    const mockVerify = vi.mocked(verifyClerkJwt);
+    mockVerify.mockResolvedValue({
+      userId: "user_456",
+      iss: "https://example.clerk.accounts.dev",
+      aud: "ummati-api"
+    });
 
     const opts = { authToken: "valid_token_here" };
     const context = await createContext(opts);
 
-    expect(mockVerifyToken).toHaveBeenCalledWith("valid_token_here", expect.objectContaining({ secretKey: "test-secret-key" }));
+    expect(mockVerify).toHaveBeenCalledWith("valid_token_here");
     expect(context.userId).toBe("user_456");
-    
-    // Restore original
-    if (originalSecretKey) {
-      process.env.CLERK_SECRET_KEY = originalSecretKey;
-    } else {
-      delete process.env.CLERK_SECRET_KEY;
-    }
   });
 
   it("should handle invalid token gracefully", async () => {
-    const mockVerifyToken = vi.mocked(verifyToken);
-    mockVerifyToken.mockRejectedValue(new Error("Invalid token"));
+    const mockVerify = vi.mocked(verifyClerkJwt);
+    mockVerify.mockRejectedValue(new Error("Invalid token"));
 
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const opts = { authToken: "invalid_token" };
     const context = await createContext(opts);
 
     expect(context.userId).toBeNull();
-    expect(consoleSpy).toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalled();
 
-    consoleSpy.mockRestore();
+    warnSpy.mockRestore();
   });
 
   it("should prefer userId over authToken when both are provided", async () => {
-    const mockVerifyToken = vi.mocked(verifyToken);
+    const mockVerify = vi.mocked(verifyClerkJwt);
 
     const opts = {
       userId: "user_789",
@@ -75,7 +67,6 @@ describe("createContext", () => {
     const context = await createContext(opts);
 
     expect(context.userId).toBe("user_789");
-    expect(mockVerifyToken).not.toHaveBeenCalled();
+    expect(mockVerify).not.toHaveBeenCalled();
   });
 });
-

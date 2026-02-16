@@ -1,5 +1,8 @@
 {
   "name": "@ummati/config",
   "version": "0.1.0",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "jose": "^6.1.3"
+  }
 }

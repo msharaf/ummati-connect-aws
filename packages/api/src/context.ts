@@ -1,22 +1,12 @@
-import { createClerkClient, verifyToken } from "@clerk/backend";
+import { createClerkClient } from "@clerk/backend";
 import type { inferAsyncReturnType } from "@trpc/server";
+import { decodeJwt } from "jose";
+
+import { verifyClerkJwt } from "./auth/verifyClerkJwt";
 
 export interface CreateContextOptions {
   userId?: string | null;
   authToken?: string | null;
-}
-
-/** Decode JWT payload without verifying (for dev logging only). */
-function decodeJwtPayloadUnsafe(token: string): Record<string, unknown> | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const json = Buffer.from(base64, "base64").toString("utf8");
-    return JSON.parse(json) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
 }
 
 /** Derive a short reason from verify error for dev logging. */
@@ -31,83 +21,64 @@ function getVerifyFailureReason(error: unknown): string {
   return msg.slice(0, 80);
 }
 
-// Create a singleton Clerk client
+// Clerk client for API calls (users.getUser etc.) - uses CLERK_SECRET_KEY
+// JWT verification uses JWKS only, NOT secret key
 const clerk = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY
 });
 
 export async function createContext(opts: CreateContextOptions = {}) {
-  let userId = opts.userId || null;
-  const hasAuthHeader = !!(opts.authToken && opts.authToken.length > 0);
+  let userId: string | null = opts.userId ?? null;
+  let auth: { iss?: string; aud?: unknown } | null = null;
 
-  if (process.env.NODE_ENV !== "production") {
-    const authPrefix = opts.authToken
-      ? String(opts.authToken).slice(0, 30) + (opts.authToken.length > 30 ? "..." : "")
-      : "none";
-    // eslint-disable-next-line no-console
-    console.log(
-      "   🔑 createContext: hasAuthHeader=",
-      hasAuthHeader,
-      "authPrefix=",
-      authPrefix
-    );
-    if (opts.authToken) {
-      const payload = decodeJwtPayloadUnsafe(opts.authToken);
-      if (payload) {
+  // Only verify token when we have a token and no userId (e.g. web passes userId from auth())
+  if (opts.authToken && opts.authToken.length > 0 && !userId) {
+    const token = opts.authToken;
+
+    // Dev: log decoded iss/aud (unverified)
+    if (process.env.NODE_ENV !== "production") {
+      try {
+        const decoded = decodeJwt(token);
         // eslint-disable-next-line no-console
         console.log(
           "   🔑 createContext: decoded iss=",
-          payload.iss ?? "n/a",
+          decoded.iss ?? "n/a",
           "aud=",
-          payload.aud ?? "n/a",
-          "azp=",
-          payload.azp ?? "n/a"
+          decoded.aud ?? "n/a"
         );
+      } catch {
+        // decodeJwt can throw on malformed; ignore
       }
     }
-  }
 
-  // If we have an auth token but no userId, verify it with Clerk
-  if (opts.authToken && !userId) {
-    if (!process.env.CLERK_SECRET_KEY) {
+    try {
+      const result = await verifyClerkJwt(token);
+      userId = result.userId;
+      auth = { iss: result.iss, aud: result.aud };
       if (process.env.NODE_ENV !== "production") {
         // eslint-disable-next-line no-console
-        console.warn("⚠️  Skipping token verification - CLERK_SECRET_KEY not set");
+        console.log("   🔑 createContext: verified userId=", userId);
       }
-    } else {
-      try {
-        const verifyPromise = verifyToken(opts.authToken, {
-          secretKey: process.env.CLERK_SECRET_KEY
-        });
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error("Token verification timeout")), 5000);
-        });
-        const payload = await Promise.race([verifyPromise, timeoutPromise]);
-        userId = payload.sub ?? null;
-        if (process.env.NODE_ENV !== "production") {
-          // eslint-disable-next-line no-console
-          console.log("   🔑 createContext: token verified, userId=", userId);
-        }
-      } catch (error) {
-        if (process.env.NODE_ENV !== "production") {
-          const reason = getVerifyFailureReason(error);
-          // eslint-disable-next-line no-console
-          console.warn(
-            "   🔑 createContext: verify failed -",
-            reason,
-            "| full:",
-            error instanceof Error ? error.message : "Unknown error"
-          );
-        }
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        const reason = getVerifyFailureReason(error);
+        // eslint-disable-next-line no-console
+        console.warn(
+          "   🔑 createContext: verify failed -",
+          reason,
+          "|",
+          error instanceof Error ? error.message : "Unknown error"
+        );
       }
+      // Never throw; context sets userId=null on auth failure
     }
   }
 
   return {
     userId,
+    auth,
     clerk
   };
 }
 
 export type Context = inferAsyncReturnType<typeof createContext>;
-
