@@ -4,7 +4,6 @@ import { useAuth } from "@clerk/clerk-expo";
 import { trpc } from "../../lib/trpc";
 import { CardStack } from "./CardStack";
 import { MatchModal } from "./MatchModal";
-import type { SwipeDirection } from "@ummati/db/types";
 
 export function SwipeScreen() {
   const { userId } = useAuth();
@@ -12,17 +11,18 @@ export function SwipeScreen() {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchedUser, setMatchedUser] = useState<any>(null);
 
-  const { data: currentUser } = trpc.auth.getCurrentUser.useQuery(
+  const { data: userData } = trpc.user.me.useQuery(
+    undefined,
+    { enabled: Boolean(userId) }
+  );
+  const currentUser = userData?.profile;
+
+  const { data: recommendationsData, isLoading, refetch } = trpc.matchmaking.getRecommendations.useQuery(
     undefined,
     { enabled: Boolean(userId) }
   );
 
-  const { data, isLoading, refetch } = trpc.swipe.getSwipableUsers.useQuery(
-    { limit: 20 },
-    { enabled: Boolean(userId) }
-  );
-
-  const swipeMutation = trpc.swipe.swipeUser.useMutation({
+  const swipeMutation = trpc.matchmaking.swipe.useMutation({
     onSuccess: (result) => {
       if (result.matchCreated) {
         // Show match modal
@@ -43,22 +43,22 @@ export function SwipeScreen() {
   });
 
   useEffect(() => {
-    if (data) {
-      setProfiles(data);
+    if (recommendationsData?.recommendations) {
+      setProfiles(recommendationsData.recommendations);
     }
-  }, [data]);
+  }, [recommendationsData]);
 
   const handleSwipeLeft = (userId: string) => {
     swipeMutation.mutate({
       targetUserId: userId,
-      direction: SwipeDirection.DISLIKE
+      direction: "DISLIKE"
     });
   };
 
   const handleSwipeRight = (userId: string) => {
     swipeMutation.mutate({
       targetUserId: userId,
-      direction: SwipeDirection.LIKE
+      direction: "LIKE"
     });
   };
 
@@ -113,7 +113,7 @@ export function SwipeScreen() {
       {/* Match Modal */}
       <MatchModal
         visible={showMatchModal}
-        currentUser={currentUser || null}
+        currentUser={currentUser as any}
         matchedUser={matchedUser}
         onClose={() => {
           setShowMatchModal(false);
