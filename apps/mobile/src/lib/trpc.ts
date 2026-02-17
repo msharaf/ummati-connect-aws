@@ -178,7 +178,10 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
     const url = `${baseUrl}${getTrpcPath(baseUrl)}`;
     if (__DEV__) {
       // eslint-disable-next-line no-console
-      console.log("[tRPC] Client created (once), baseUrl:", baseUrl, "url:", url);
+      console.log(
+        "[tRPC] ✅ Client mounted after auth ready",
+        { baseUrl, url, isLoaded, isSignedIn }
+      );
     }
     return trpc.createClient({
       transformer: superjson,
