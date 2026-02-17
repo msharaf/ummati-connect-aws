@@ -1,6 +1,11 @@
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { View, TouchableOpacity, Text } from "react-native";
 import { trpc } from "../lib/trpc";
+
+// Expo Router adds href to options, but it's not in the base type
+type ExpoRouterOptions = {
+  href?: string | null;
+};
 
 export function RoleBasedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { data: userData } = trpc.user.me.useQuery();
@@ -41,7 +46,7 @@ export function RoleBasedTabBar({ state, descriptors, navigation }: BottomTabBar
         height: 60
       }}
     >
-      {filteredRoutes.map((route, index) => {
+      {filteredRoutes.map((route) => {
         const originalIndex = state.routes.indexOf(route);
         const { options } = descriptors[route.key];
         const label =
@@ -53,8 +58,9 @@ export function RoleBasedTabBar({ state, descriptors, navigation }: BottomTabBar
 
         const isFocused = state.index === originalIndex;
 
-        // Skip if href is null (hidden screens like chat details)
-        if (options.href === null) {
+        // Skip if href is null (hidden screens like chat details, setup pages)
+        const expoOptions = options as ExpoRouterOptions;
+        if (expoOptions.href === null) {
           return null;
         }
 
@@ -85,7 +91,6 @@ export function RoleBasedTabBar({ state, descriptors, navigation }: BottomTabBar
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
             accessibilityLabel={options.tabBarAccessibilityLabel}
-            testID={options.tabBarTestID}
             onPress={onPress}
             onLongPress={onLongPress}
             style={{ flex: 1, alignItems: "center", justifyContent: "center" }}

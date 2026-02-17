@@ -77,6 +77,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="investor/setup"
+        options={{
+          href: null,
+          headerTitle: "Setup"
+        }}
+      />
+      <Tabs.Screen
         name="visionary/dashboard"
         options={{
           title: "Dashboard",

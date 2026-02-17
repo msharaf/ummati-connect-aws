@@ -73,7 +73,7 @@ export default function InvestorSetupScreen() {
   const mutation = trpc.investorProfile.saveProfileDetails.useMutation({
     onSuccess: () => {
       utils.investorProfile.getMyInvestorProfile.invalidate();
-      router.push("/(tabs)/investor/dashboard");
+      router.push("/(tabs)/investor");
     },
     onError: (error) => {
       setErrors({ minTicketSize: error.message });
