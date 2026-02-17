@@ -70,7 +70,7 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   // Get current user
-  const { data: userData } = trpc.user.getMe.useQuery();
+  const { data: userData } = trpc.user.me.useQuery();
   const currentUser = userData?.profile;
 
   // Get match details

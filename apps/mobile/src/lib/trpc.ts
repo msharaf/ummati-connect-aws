@@ -119,11 +119,22 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
   const handling401Ref = useRef(false);
   const getTokenRef = useRef(getToken);
   const lastRequestHadTokenRef = useRef(false);
-  const authStateRef = useRef({ isLoaded: false, isSignedIn: false });
+  const authStateRef = useRef<{ isLoaded: boolean | undefined; isSignedIn: boolean | undefined }>({ 
+    isLoaded: false, 
+    isSignedIn: false 
+  });
   authStateRef.current = { isLoaded, isSignedIn };
+  
   useEffect(() => {
     getTokenRef.current = getToken;
   }, [getToken]);
+
+  useEffect(() => {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log("[tRPC] Provider mounted with auth state:", { isLoaded, isSignedIn });
+    }
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
     const handle401 = async () => {
@@ -179,8 +190,8 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
     if (__DEV__) {
       // eslint-disable-next-line no-console
       console.log(
-        "[tRPC] ✅ Client mounted after auth ready",
-        { baseUrl, url, isLoaded, isSignedIn }
+        "[tRPC] ✅ Client created",
+        { baseUrl, url }
       );
     }
     return trpc.createClient({

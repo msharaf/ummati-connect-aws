@@ -32,8 +32,8 @@ export default function ChooseRoleScreen() {
 
   const setRole = trpc.user.setRole.useMutation({
     onSuccess: (data) => {
+      // Only invalidate user.me (not user.getMe) to avoid duplicate refetches
       utils.user.me.invalidate();
-      utils.user.getMe.invalidate();
       if (data.role === "INVESTOR") {
         router.replace("/(tabs)/investor");
       } else if (data.role === "VISIONARY") {
