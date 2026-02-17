@@ -90,16 +90,17 @@ function AuthenticatedApp() {
     // Signed in: wait for user data before routing
     if (isLoadingUser) return;
 
-    // Signed in, no role / onboarding incomplete -> select-mode (choose-role)
-    if (!userData?.onboardingComplete) {
+    // Signed in, NO ROLE → force choose-role
+    if (!userData?.role) {
       if (!isChooseRole) {
         router.replace("/(auth)/choose-role");
       }
       return;
     }
 
-    // Signed in, onboarding complete: redirect away from auth screens to app
-    if (inAuthGroup && !isChooseRole) {
+    // Signed in, HAS ROLE: redirect away from auth screens to app
+    // Allow access even if onboarding not complete (they can finish profile setup later)
+    if (inAuthGroup) {
       if (userData.role === "INVESTOR") {
         router.replace("/(tabs)/investor");
       } else if (userData.role === "VISIONARY") {
