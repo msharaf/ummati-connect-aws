@@ -36,7 +36,8 @@ export default function MessagesTab() {
   const { data: matches, isLoading, refetch } = trpc.messages.getMatchesWithLastMessage.useQuery(
     undefined,
     {
-      refetchInterval: 5000 // Poll every 5 seconds for "real-time" updates
+      refetchInterval: 15000, // Poll every 15s (reduced from 5s)
+      refetchOnWindowFocus: false // Prevent excessive refetches
     }
   );
 

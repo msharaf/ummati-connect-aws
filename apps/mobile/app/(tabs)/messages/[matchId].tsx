@@ -85,7 +85,8 @@ export default function ChatScreen() {
       { matchId: matchId! },
       {
         enabled: Boolean(matchId),
-        refetchInterval: 3000 // Poll every 3 seconds for new messages
+        refetchInterval: 10000, // Poll every 10s (reduced from 3s)
+        refetchOnWindowFocus: false // Prevent excessive refetches
       }
     );
 
