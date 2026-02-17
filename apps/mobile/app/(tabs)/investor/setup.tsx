@@ -121,7 +121,8 @@ export default function InvestorSetupScreen() {
       maxTicketSize: formData.maxTicketSize ? Number(formData.maxTicketSize) : undefined,
       preferredSectors: formData.preferredSectors,
       geoFocus: formData.geoFocus.trim() || undefined,
-      investmentThesis: formData.investmentThesis.trim() || undefined
+      investmentThesis: formData.investmentThesis.trim() || undefined,
+      hasAcceptedHalalTerms: true // Development bypass for HalalFocus
     });
   };
 
