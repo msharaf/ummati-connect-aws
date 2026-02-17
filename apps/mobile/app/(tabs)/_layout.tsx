@@ -1,27 +1,21 @@
-"use client";
+/**
+ * EXPO ROUTER LAYOUT CONTRACT:
+ * - Layouts MUST be deterministic (same structure every render)
+ * - Layouts MUST only return <Tabs.Screen> children (no conditionals, no wrappers, no fragments)
+ * - NO business logic, NO loading states, NO data fetching in the layout itself
+ * - Use `href: null` to hide screens from tabs; role-based logic must happen at screen level or via redirects
+ * 
+ * MOVED OUT (TODO if needed):
+ * - Role-based conditional rendering → move to individual screen files with redirects
+ * - Loading states → handle in a root layout or via _layout in parent (app/_layout)
+ * - tRPC calls → move to screens or use a separate auth guard component
+ */
 
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { trpc } from "../../src/lib/trpc";
-import { View, ActivityIndicator, Text } from "react-native";
 import { LogoutButton } from "../../src/components/LogoutButton";
 
 export default function TabsLayout() {
-  // Get user role to conditionally show tabs
-  const { data: user, isLoading } = trpc.user.getMe.useQuery();
-
-  // Show loading state while fetching user role
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-emerald-50">
-        <ActivityIndicator size="large" color="#047857" />
-        <Text className="mt-4 text-gray-600">Loading...</Text>
-      </View>
-    );
-  }
-
-  const userRole = user?.role;
-
   return (
     <Tabs
       screenOptions={{
@@ -42,7 +36,6 @@ export default function TabsLayout() {
         }
       }}
     >
-      {/* Common tabs for both roles */}
       <Tabs.Screen
         name="swipe/index"
         options={{
@@ -73,77 +66,35 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="messages/[matchId]"
         options={{
-          href: null, // Hide from tab bar
+          href: null,
           headerTitle: "Chat"
         }}
       />
-
-      {/* Investor-specific tabs */}
-      {userRole === "INVESTOR" && (
-        <Tabs.Screen
-          name="investor/index"
-          options={{
-            title: "Browse",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="search" size={size} color={color} />
-            )
-          }}
-        />
-      )}
-
-      {/* Visionary-specific tabs */}
-      {userRole === "VISIONARY" && (
-        <>
-          <Tabs.Screen
-            name="visionary/dashboard"
-            options={{
-              title: "Dashboard",
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="stats-chart" size={size} color={color} />
-              )
-            }}
-          />
-          <Tabs.Screen
-            name="visionary/setup"
-            options={{
-              href: null, // Hide from tab bar
-              headerTitle: "Setup"
-            }}
-          />
-        </>
-      )}
-
-      {/* Hide tabs that don't belong to current role */}
-      {userRole !== "INVESTOR" && (
-        <Tabs.Screen
-          name="investor/index"
-          options={{
-            href: null, // Hide from tab bar
-            headerShown: false
-          }}
-        />
-      )}
-
-      {userRole !== "VISIONARY" && (
-        <>
-          <Tabs.Screen
-            name="visionary/dashboard"
-            options={{
-              href: null, // Hide from tab bar
-              headerShown: false
-            }}
-          />
-          <Tabs.Screen
-            name="visionary/setup"
-            options={{
-              href: null, // Hide from tab bar
-              headerTitle: "Setup"
-            }}
-          />
-        </>
-      )}
-
-      {/* Profile tab - always visible */}
+      <Tabs.Screen
+        name="investor/index"
+        options={{
+          title: "Browse",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="search" size={size} color={color} />
+          )
+        }}
+      />
+      <Tabs.Screen
+        name="visionary/dashboard"
+        options={{
+          title: "Dashboard",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="stats-chart" size={size} color={color} />
+          )
+        }}
+      />
+      <Tabs.Screen
+        name="visionary/setup"
+        options={{
+          href: null,
+          headerTitle: "Setup"
+        }}
+      />
       <Tabs.Screen
         name="profile/index"
         options={{
