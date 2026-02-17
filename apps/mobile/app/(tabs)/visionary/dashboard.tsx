@@ -18,6 +18,11 @@ import { ProfileCompletionCard } from "../../../src/features/visionary/ProfileCo
 export default function VisionaryDashboardScreen() {
   const router = useRouter();
 
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log("[Visionary] Dashboard screen rendered");
+  }
+
   // Fetch profile for startup name
   const { data: profile, isLoading: isLoadingProfile } =
     trpc.visionary.getMyProfile.useQuery();
@@ -61,7 +66,8 @@ export default function VisionaryDashboardScreen() {
       >
         <View className="flex-row items-start justify-between mb-4">
           <View className="flex-1">
-            <Text className="text-2xl font-bold text-white mb-1">{startupName}</Text>
+            <Text className="text-2xl font-bold text-white mb-1">✅ VISIONARY HOME LOADED</Text>
+            <Text className="text-sm font-semibold text-yellow-300 mb-1">{startupName}</Text>
             <Text className="text-emerald-100 text-xs">
               Track your startup&apos;s journey and investor interest
             </Text>

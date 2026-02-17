@@ -25,11 +25,16 @@ export default function InvestorDashboardTab() {
     search: null
   });
 
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log("[Investor] Screen rendered");
+  }
+
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
       <View className="bg-emerald-600 px-4 py-3">
-        <Text className="text-2xl font-bold text-white mb-1">Investor Dashboard</Text>
+        <Text className="text-2xl font-bold text-white mb-1">✅ INVESTOR HOME LOADED</Text>
         <Text className="text-emerald-100 text-sm">
           Discover visionary founders aligned with your values
         </Text>

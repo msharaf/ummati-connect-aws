@@ -3,21 +3,18 @@
  * - Layouts MUST be deterministic (same structure every render)
  * - Layouts MUST only return <Tabs.Screen> children (no conditionals, no wrappers, no fragments)
  * - NO business logic, NO loading states, NO data fetching in the layout itself
- * - Use `href: null` to hide screens from tabs; role-based logic must happen at screen level or via redirects
- * 
- * MOVED OUT (TODO if needed):
- * - Role-based conditional rendering → move to individual screen files with redirects
- * - Loading states → handle in a root layout or via _layout in parent (app/_layout)
- * - tRPC calls → move to screens or use a separate auth guard component
+ * - Role-based tab visibility handled via custom tabBar component
  */
 
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LogoutButton } from "../../src/components/LogoutButton";
+import { RoleBasedTabBar } from "../../src/components/RoleBasedTabBar";
 
 export default function TabsLayout() {
   return (
     <Tabs
+      tabBar={(props) => <RoleBasedTabBar {...props} />}
       screenOptions={{
         headerShown: true,
         headerRight: () => <LogoutButton />,
