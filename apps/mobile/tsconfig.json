@@ -13,6 +13,6 @@
     },
     "types": ["nativewind/types", "react-native", "expo"]
   },
-  "include": ["App.tsx", "app.config.ts", "app", "src"]
+  "include": ["App.tsx", "app.config.ts", "app", "src", "nativewind-env.d.ts"]
 }
 
