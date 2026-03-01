@@ -22,6 +22,8 @@ export function RoleBasedTabBar({ state, descriptors, navigation }: BottomTabBar
     if (routeName === "investor/index") return false;
     // Messages tab - hidden; users reach chat via Connections
     if (routeName === "messages/index") return false;
+    // Visionary dashboard - hidden; core tabs only (Swipe, Connections, Profile)
+    if (routeName === "visionary/dashboard") return false;
 
     // HARD GATE: Hide protected tabs for investors until onboarding complete
     if (isInvestor && !onboardingComplete) {

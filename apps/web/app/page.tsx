@@ -100,7 +100,7 @@ export default async function Home() {
               Built for the Ummah
             </h2>
             <p className="text-xl text-charcoal/70 max-w-3xl mx-auto">
-              We're committed to creating a platform that aligns with Islamic
+              We&apos;re committed to creating a platform that aligns with Islamic
               principles and values, ensuring every connection is halal and
               barakah-driven.
             </p>

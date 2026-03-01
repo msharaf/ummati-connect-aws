@@ -33,7 +33,7 @@ export default function DashboardPage() {
               Dashboard
             </span>
             <h1 className="text-3xl font-semibold text-charcoal">
-              As-salaamu A'laikum, {firstName}
+              As-salaamu A&apos;laikum, {firstName}
             </h1>
           <p className="text-sm text-charcoal/70">
             Discover visionaries aligned with your halal mandates. Swipe to

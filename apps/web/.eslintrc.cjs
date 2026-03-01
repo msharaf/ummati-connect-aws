@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  extends: ["@ummati/config/eslint"],
+  extends: ["next/core-web-vitals"],
   parserOptions: {
     tsconfigRootDir: __dirname
   }

@@ -164,7 +164,7 @@ export default function InvestorDashboardPage() {
                 {!hasNextPage && profiles.length > 0 && (
                   <div className="text-center py-4">
                     <p className="text-charcoal/50 text-sm">
-                      You've reached the end of results
+                      You&apos;ve reached the end of results
                     </p>
                   </div>
                 )}
