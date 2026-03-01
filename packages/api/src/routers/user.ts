@@ -33,10 +33,17 @@ export const userRouter = router({
       ((user.role === "INVESTOR" && user.investorProfile?.onboardingComplete) ||
         (user.role === "VISIONARY" && user.visionaryProfile?.onboardingComplete));
 
+    // HalalFocus verified = halalCategory set (from submitHalalFocus) or legacy hasAcceptedHalalTerms
+    const halalFocusVerified =
+      user.role === "INVESTOR" &&
+      (user.investorProfile?.halalCategory !== null ||
+        user.investorProfile?.hasAcceptedHalalTerms === true);
+
     return {
       role: user.role,
       onboardingComplete,
-        profile: {
+      halalFocusVerified: user.role === "INVESTOR" ? halalFocusVerified : undefined,
+      profile: {
           id: user.id,
           email: user.email,
           name: user.name,
@@ -181,15 +188,20 @@ export const userRouter = router({
     }
 
     // Determine onboarding completion
-    // Onboarding is complete if user has a role AND the corresponding profile is complete
     const onboardingComplete =
       user.role !== null &&
       ((user.role === "INVESTOR" && user.investorProfile?.onboardingComplete) ||
         (user.role === "VISIONARY" && user.visionaryProfile?.onboardingComplete));
 
+    const halalFocusVerified =
+      user.role === "INVESTOR" &&
+      (user.investorProfile?.halalCategory !== null ||
+        user.investorProfile?.hasAcceptedHalalTerms === true);
+
     return {
       role: user.role,
       onboardingComplete,
+      halalFocusVerified: user.role === "INVESTOR" ? halalFocusVerified : undefined,
       profile: {
         id: user.id,
         email: user.email,

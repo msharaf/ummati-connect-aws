@@ -45,7 +45,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="matches/index"
         options={{
-          title: "Matches",
+          title: "Connections",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           )
@@ -55,6 +55,7 @@ export default function TabsLayout() {
         name="messages/index"
         options={{
           title: "Messages",
+          href: null,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubbles" size={size} color={color} />
           )
@@ -71,6 +72,7 @@ export default function TabsLayout() {
         name="investor/index"
         options={{
           title: "Browse",
+          href: null,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="search" size={size} color={color} />
           )
@@ -81,6 +83,13 @@ export default function TabsLayout() {
         options={{
           href: null,
           headerTitle: "Setup"
+        }}
+      />
+      <Tabs.Screen
+        name="investor/halalfocus"
+        options={{
+          href: null,
+          headerTitle: "HalalFocus"
         }}
       />
       <Tabs.Screen

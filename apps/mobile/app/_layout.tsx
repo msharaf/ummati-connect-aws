@@ -1,8 +1,8 @@
-import { Slot, useRouter, useSegments } from "expo-router";
+import { Slot, useRouter, useSegments, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { BackHandler, Platform, View, ActivityIndicator, Text } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { ClerkProvider, publishableKey, tokenCache } from "../src/lib/clerk";
@@ -36,16 +36,19 @@ function AuthLoadingSplash() {
  * Inner component with tRPC access - only rendered when auth is ready.
  */
 function AuthenticatedApp() {
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments() as string[];
+  const pathname = usePathname();
   const router = useRouter();
+  const redirectingRef = useRef(false);
+  const routerRef = useRef(router);
+  routerRef.current = router;
 
-  // Get user profile (only if signed in)
-  // This is safe now because TRPCProvider is guaranteed to be mounted
+  // Get user profile - only when Clerk loaded AND signed in (avoids flicker)
   const { data: userData, isLoading: isLoadingUser } = trpc.user.me.useQuery(
     undefined,
     {
-      enabled: isSignedIn,
+      enabled: isLoaded && isSignedIn,
       retry: false
     }
   );
@@ -75,6 +78,17 @@ function AuthenticatedApp() {
 
   // AUTH GATE (single source of truth) - controls navigation based on auth state
   useEffect(() => {
+    const path = pathname ?? "";
+    const isOnHalalFocus = path.includes("halalfocus");
+    const isOnInvestorSetup = path.includes("investor/setup");
+    const inTabsGroup = segments[0] === "(tabs)";
+
+    // Reset redirect guard when we've arrived (prevents infinite loop)
+    if (inTabsGroup || isOnHalalFocus || isOnInvestorSetup) {
+      redirectingRef.current = false;
+    }
+    if (redirectingRef.current) return;
+
     const inAuthGroup = segments[0] === "(auth)";
     const isWelcomeScreen = segments?.[1] === "welcome";
     const isChooseRole = segments?.[1] === "choose-role";
@@ -82,7 +96,8 @@ function AuthenticatedApp() {
     // NOT signed in: only auth stack; force welcome
     if (!isSignedIn) {
       if (!isWelcomeScreen) {
-        router.replace("/(auth)/welcome");
+        redirectingRef.current = true;
+        queueMicrotask(() => routerRef.current.replace("/(auth)/welcome"));
       }
       return;
     }
@@ -93,23 +108,45 @@ function AuthenticatedApp() {
     // Signed in, NO ROLE → force choose-role
     if (!userData?.role) {
       if (!isChooseRole) {
-        router.replace("/(auth)/choose-role");
+        redirectingRef.current = true;
+        queueMicrotask(() => routerRef.current.replace("/(auth)/choose-role"));
       }
       return;
     }
 
-    // Signed in, HAS ROLE: redirect away from auth screens to app
-    // Allow access even if onboarding not complete (they can finish profile setup later)
-    if (inAuthGroup) {
-      if (userData.role === "INVESTOR") {
-        router.replace("/(tabs)/investor");
-      } else if (userData.role === "VISIONARY") {
-        router.replace("/(tabs)/visionary/dashboard");
-      } else {
-        router.replace("/(tabs)/swipe");
+    // investorOnboardingComplete = user.me.onboardingComplete (INVESTOR only)
+    // halalFocusVerified = user.me.halalFocusVerified (from halalCategory or hasAcceptedHalalTerms)
+    const investorOnboardingComplete = userData.onboardingComplete ?? false;
+    const halalFocusVerified = userData.halalFocusVerified ?? false;
+    const isInvestor = userData.role === "INVESTOR";
+    const isVisionary = userData.role === "VISIONARY";
+
+    // INVESTOR GATE: 1) HalalFocus first, 2) then profile setup (prevent redirect loops)
+    if (isInvestor) {
+      if (!halalFocusVerified && !isOnHalalFocus) {
+        redirectingRef.current = true;
+        queueMicrotask(() => routerRef.current.replace("/(tabs)/investor/halalfocus"));
+        return;
+      }
+      if (!investorOnboardingComplete && !isOnInvestorSetup) {
+        redirectingRef.current = true;
+        queueMicrotask(() => routerRef.current.replace("/(tabs)/investor/setup"));
+        return;
       }
     }
-  }, [isSignedIn, segments, userData, isLoadingUser, router]);
+
+    // Redirect away from auth screens to app (only after gates pass)
+    if (inAuthGroup) {
+      redirectingRef.current = true;
+      const target =
+        isInvestor
+          ? "/(tabs)/swipe"
+          : isVisionary
+            ? "/(tabs)/visionary/dashboard"
+            : "/(tabs)/swipe";
+      queueMicrotask(() => routerRef.current.replace(target));
+    }
+  }, [isSignedIn, segments, pathname, userData, isLoadingUser]);
 
   return (
     <>

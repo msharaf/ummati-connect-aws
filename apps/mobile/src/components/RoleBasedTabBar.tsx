@@ -10,27 +10,37 @@ type ExpoRouterOptions = {
 export function RoleBasedTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { data: userData } = trpc.user.me.useQuery();
   const userRole = userData?.role;
+  const onboardingComplete = userData?.onboardingComplete ?? false;
+  const isInvestor = userRole === "INVESTOR";
 
-  // Filter routes based on user role
+  // Filter routes based on user role AND onboarding status
+  // Core tabs: Swipe, Connections (matches), Profile only. Browse and Messages hidden.
   const filteredRoutes = state.routes.filter((route) => {
     const routeName = route.name;
-    
-    // Common tabs - always show
+
+    // Browse (investor/index) - always hidden from tab bar
+    if (routeName === "investor/index") return false;
+    // Messages tab - hidden; users reach chat via Connections
+    if (routeName === "messages/index") return false;
+
+    // HARD GATE: Hide protected tabs for investors until onboarding complete
+    if (isInvestor && !onboardingComplete) {
+      // During onboarding: only setup; setup has href:null so no tabs shown
+      if (routeName.startsWith("investor")) return true;
+      return false;
+    }
+
+    // Core tabs - show after onboarding complete
     if (routeName.startsWith("swipe")) return true;
     if (routeName.startsWith("matches")) return true;
-    if (routeName.startsWith("messages")) return true;
     if (routeName.startsWith("profile")) return true;
-    
-    // Investor-only tabs
-    if (routeName.startsWith("investor")) {
-      return userRole === "INVESTOR";
-    }
-    
+
+    // Investor-only (Browse excluded above)
+    if (routeName.startsWith("investor")) return userRole === "INVESTOR";
+
     // Visionary-only tabs
-    if (routeName.startsWith("visionary")) {
-      return userRole === "VISIONARY";
-    }
-    
+    if (routeName.startsWith("visionary")) return userRole === "VISIONARY";
+
     return false;
   });
 

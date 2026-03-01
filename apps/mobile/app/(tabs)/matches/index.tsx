@@ -5,6 +5,7 @@ import { trpc } from "../../../src/lib/trpc";
 import { formatDistanceToNow } from "date-fns";
 import { ActivityIndicator } from "react-native";
 import { Avatar } from "../../../components/Avatar";
+import { InvestorOnboardingGuard } from "../../../src/components/InvestorOnboardingGuard";
 
 interface MatchListItemProps {
   match: {
@@ -64,8 +65,26 @@ function MatchListItem({ match, onPress }: MatchListItemProps) {
 }
 
 export default function MatchesScreen() {
+  return (
+    <InvestorOnboardingGuard>
+      <MatchesScreenContent />
+    </InvestorOnboardingGuard>
+  );
+}
+
+function MatchesScreenContent() {
   const router = useRouter();
-  const { data: matches, isLoading } = trpc.matchmaking.getMatches.useQuery();
+  const { data: userData } = trpc.user.me.useQuery();
+  const onboardingComplete = userData?.onboardingComplete ?? false;
+  
+  // Gate query: only fetch matches if onboarding complete
+  const { data: matches, isLoading } = trpc.matchmaking.getMatches.useQuery(
+    undefined,
+    {
+      enabled: onboardingComplete,
+      retry: false
+    }
+  );
 
   if (isLoading) {
     return (

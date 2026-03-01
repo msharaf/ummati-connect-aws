@@ -4,6 +4,7 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image } from
 import { useRouter } from "expo-router";
 import { formatDistanceToNow } from "date-fns";
 import { trpc } from "../../../src/lib/trpc";
+import { InvestorOnboardingGuard } from "../../../src/components/InvestorOnboardingGuard";
 
 interface Match {
   matchId: string;
@@ -31,12 +32,25 @@ interface Match {
 }
 
 export default function MessagesTab() {
-  const router = useRouter();
+  return (
+    <InvestorOnboardingGuard>
+      <MessagesTabContent />
+    </InvestorOnboardingGuard>
+  );
+}
 
+function MessagesTabContent() {
+  const router = useRouter();
+  const { data: userData } = trpc.user.me.useQuery();
+  const onboardingComplete = userData?.onboardingComplete ?? false;
+
+  // Gate query: only fetch messages if onboarding complete
   const { data: matches, isLoading, refetch } = trpc.messages.getMatchesWithLastMessage.useQuery(
     undefined,
     {
-      refetchInterval: 15000, // Poll every 15s (reduced from 5s)
+      enabled: onboardingComplete,
+      retry: false,
+      refetchInterval: onboardingComplete ? 15000 : false, // Poll every 15s (reduced from 5s) only if onboarding complete
       refetchOnWindowFocus: false // Prevent excessive refetches
     }
   );

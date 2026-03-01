@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { trpc } from "../../../src/lib/trpc";
 import { Avatar } from "../../../components/Avatar";
 import { BackButton } from "../../../src/components/BackButton";
+import { InvestorOnboardingGuard } from "../../../src/components/InvestorOnboardingGuard";
 
 interface MessageBubbleProps {
   message: {
@@ -64,6 +65,14 @@ function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
 }
 
 export default function ChatScreen() {
+  return (
+    <InvestorOnboardingGuard>
+      <ChatScreenContent />
+    </InvestorOnboardingGuard>
+  );
+}
+
+function ChatScreenContent() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const router = useRouter();
   const [messageText, setMessageText] = useState("");
@@ -72,20 +81,25 @@ export default function ChatScreen() {
   // Get current user
   const { data: userData } = trpc.user.me.useQuery();
   const currentUser = userData?.profile;
+  const onboardingComplete = userData?.onboardingComplete ?? false;
 
-  // Get match details
+  // Get match details - gate on onboarding completion
   const { data: match } = trpc.matchmaking.getMatch.useQuery(
     { matchId: matchId! },
-    { enabled: Boolean(matchId) }
+    { 
+      enabled: Boolean(matchId) && onboardingComplete,
+      retry: false
+    }
   );
 
-  // Get messages
+  // Get messages - gate on onboarding completion
   const { data: messagesData, isLoading: isLoadingMessages } =
     trpc.messages.getMessagesForMatch.useQuery(
       { matchId: matchId! },
       {
-        enabled: Boolean(matchId),
-        refetchInterval: 10000, // Poll every 10s (reduced from 3s)
+        enabled: Boolean(matchId) && onboardingComplete,
+        retry: false,
+        refetchInterval: onboardingComplete ? 10000 : false, // Poll every 10s (reduced from 3s) only if onboarding complete
         refetchOnWindowFocus: false // Prevent excessive refetches
       }
     );

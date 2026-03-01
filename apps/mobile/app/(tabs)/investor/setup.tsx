@@ -12,6 +12,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { trpc } from "../../../src/lib/trpc";
 import { BackButton } from "../../../src/components/BackButton";
 
+const HALAL_FOCUS_ERROR = "Complete HalalFocus verification first";
+
 interface FormData {
   minTicketSize: string;
   maxTicketSize: string;
@@ -41,7 +43,9 @@ export default function InvestorSetupScreen() {
   const router = useRouter();
   const utils = trpc.useUtils();
 
-  // Fetch existing profile
+  const { data: userData } = trpc.user.me.useQuery();
+  const halalFocusVerified = userData?.halalFocusVerified ?? false;
+
   const { data: existingProfile, isLoading: isLoadingProfile } =
     trpc.investorProfile.getMyInvestorProfile.useQuery();
 
@@ -69,14 +73,21 @@ export default function InvestorSetupScreen() {
     }
   }, [existingProfile]);
 
-  // Mutation
   const mutation = trpc.investorProfile.saveProfileDetails.useMutation({
-    onSuccess: () => {
-      utils.investorProfile.getMyInvestorProfile.invalidate();
-      router.push("/(tabs)/investor");
+    onSuccess: async () => {
+      await utils.investorProfile.getMyInvestorProfile.invalidate();
+      await utils.user.me.invalidate();
+      router.replace("/(tabs)/swipe");
     },
     onError: (error) => {
-      setErrors({ minTicketSize: error.message });
+      if (error.message?.includes(HALAL_FOCUS_ERROR)) {
+        setErrors({
+          minTicketSize: HALAL_FOCUS_ERROR
+        });
+        router.replace("/(tabs)/investor/halalfocus");
+      } else {
+        setErrors({ minTicketSize: error.message });
+      }
     }
   });
 
@@ -114,15 +125,14 @@ export default function InvestorSetupScreen() {
   };
 
   const handleSubmit = () => {
-    if (!validate()) return;
+    if (!validate() || !halalFocusVerified) return;
 
     mutation.mutate({
       minTicketSize: formData.minTicketSize ? Number(formData.minTicketSize) : undefined,
       maxTicketSize: formData.maxTicketSize ? Number(formData.maxTicketSize) : undefined,
       preferredSectors: formData.preferredSectors,
       geoFocus: formData.geoFocus.trim() || undefined,
-      investmentThesis: formData.investmentThesis.trim() || undefined,
-      hasAcceptedHalalTerms: true // Development bypass for HalalFocus
+      investmentThesis: formData.investmentThesis.trim() || undefined
     });
   };
 
@@ -146,6 +156,29 @@ export default function InvestorSetupScreen() {
       <View className="flex-1 bg-emerald-50 items-center justify-center">
         <ActivityIndicator size="large" color="#059669" />
         <Text className="text-gray-600 mt-4">Loading your profile...</Text>
+      </View>
+    );
+  }
+
+  if (!halalFocusVerified) {
+    return (
+      <View className="flex-1 bg-emerald-50 items-center justify-center p-6">
+        <Text className="text-6xl mb-4">📋</Text>
+        <Text className="text-xl font-semibold text-gray-900 mb-2 text-center">
+          Complete HalalFocus First
+        </Text>
+        <Text className="text-gray-600 text-center mb-6">
+          You must complete the HalalFocus verification before saving your
+          investment profile.
+        </Text>
+        <TouchableOpacity
+          onPress={() => router.replace("/(tabs)/investor/halalfocus")}
+          className="bg-emerald-600 rounded-lg py-4 px-6"
+        >
+          <Text className="text-white font-semibold text-center text-lg">
+            Go to HalalFocus Verification
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -296,9 +329,9 @@ export default function InvestorSetupScreen() {
         {/* Submit Button */}
         <TouchableOpacity
           onPress={handleSubmit}
-          disabled={mutation.isPending}
+          disabled={mutation.isPending || !halalFocusVerified}
           className={`bg-emerald-600 rounded-lg py-4 px-6 mb-8 ${
-            mutation.isPending ? "opacity-50" : ""
+            mutation.isPending || !halalFocusVerified ? "opacity-50" : ""
           }`}
         >
           {mutation.isPending ? (
