@@ -3,25 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { DashboardGuard } from "./DashboardGuard";
 import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import { trpc } from "../src/lib/trpc";
-import { mockUseQuery } from "../vitest.setup";
-
-// These are already mocked in vitest.setup.ts, but we override them here for specific tests
+import { mockUseQuery, mockRouter } from "../vitest.setup";
 
 describe("DashboardGuard", () => {
-  const mockPush = vi.fn();
-  const mockRouter = {
-    push: mockPush,
-    replace: vi.fn(),
-    prefetch: vi.fn(),
-    back: vi.fn()
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
-    // useRouter is already mocked in vitest.setup.ts, just clear the mock functions
-    mockPush.mockClear();
   });
 
   it("should show loading when auth is not loaded", () => {
@@ -67,7 +53,7 @@ describe("DashboardGuard", () => {
     );
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/sign-in");
+      expect(mockRouter.push).toHaveBeenCalledWith("/sign-in");
     });
 
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
@@ -97,7 +83,7 @@ describe("DashboardGuard", () => {
     );
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/onboarding/choose-role");
+      expect(mockRouter.push).toHaveBeenCalledWith("/onboarding/choose-role");
     });
 
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
@@ -130,7 +116,7 @@ describe("DashboardGuard", () => {
       expect(screen.getByText("Protected Content")).toBeInTheDocument();
     });
 
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
   it("should show loading when user data is loading", () => {

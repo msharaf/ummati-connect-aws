@@ -2,8 +2,8 @@ import { vi } from "vitest";
 import React from "react";
 import "@testing-library/jest-dom";
 
-// Mock Next.js router
-const mockRouter = {
+// Mock Next.js router (exported for tests to assert on)
+export const mockRouter = {
   push: vi.fn(),
   replace: vi.fn(),
   prefetch: vi.fn(),
@@ -34,6 +34,9 @@ vi.mock("@clerk/nextjs", () => ({
     isLoaded: true,
     user: null
   })),
+  useClerk: vi.fn(() => ({
+    signOut: vi.fn(() => Promise.resolve())
+  })),
   useAuth: vi.fn(() => ({
     isSignedIn: false,
     isLoaded: true,
@@ -50,7 +53,7 @@ export const mockUseQuery = vi.fn((_input?: any, _options?: any) => ({
   error: null
 }));
 
-vi.mock("../src/lib/trpc", () => ({
+vi.mock("./src/lib/trpc", () => ({
   trpc: {
     user: {
       me: {

@@ -39,7 +39,8 @@ describe("userRouter", () => {
           minTicketSize: 10000,
           maxTicketSize: 100000,
           preferredSectors: ["Tech", "Healthcare"],
-          geoFocus: "US"
+          geoFocus: "US",
+          onboardingComplete: true
         },
         visionaryProfile: null
       };
@@ -105,7 +106,8 @@ describe("userRouter", () => {
           startupStage: "SEED",
           sector: "Tech",
           description: "A great startup",
-          isApproved: false
+          isApproved: false,
+          onboardingComplete: true
         }
       };
 
@@ -139,7 +141,9 @@ describe("userRouter", () => {
         role: "INVESTOR" as const
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as any);
+      vi.mocked(prisma.user.findUnique)
+        .mockResolvedValueOnce(existingUser as any)
+        .mockResolvedValueOnce(updatedUser as any);
       vi.mocked(prisma.user.update).mockResolvedValue(updatedUser as any);
 
       const caller = userRouter.createCaller(mockCtx);
@@ -147,27 +151,30 @@ describe("userRouter", () => {
 
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { clerkId: "user_clerk_123" },
-        data: { role: "INVESTOR" },
-        include: {
-          investorProfile: true,
-          visionaryProfile: true
-        }
+        data: { role: "INVESTOR" }
       });
 
       expect(result.role).toBe("INVESTOR");
       expect(result.onboardingComplete).toBe(false);
     });
 
-    it("should throw error when user does not exist", async () => {
+    it("should throw error when user does not exist and Clerk fails", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
-
-      const caller = userRouter.createCaller(mockCtx);
+      const clerkWithFailingGetUser = createMockClerkClient({
+        users: {
+          getUser: async () => {
+            throw new Error("Clerk unavailable");
+          }
+        }
+      } as any);
+      const ctx = { ...mockCtx, clerk: clerkWithFailingGetUser };
+      const caller = userRouter.createCaller(ctx);
 
       await expect(caller.setRole({ role: "INVESTOR" })).rejects.toThrow(
         TRPCError
       );
       await expect(caller.setRole({ role: "INVESTOR" })).rejects.toThrow(
-        "User not found"
+        "Failed to create user"
       );
     });
 
@@ -189,7 +196,9 @@ describe("userRouter", () => {
         role: "VISIONARY" as const
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as any);
+      vi.mocked(prisma.user.findUnique)
+        .mockResolvedValueOnce(existingUser as any)
+        .mockResolvedValueOnce(updatedUser as any);
       vi.mocked(prisma.user.update).mockResolvedValue(updatedUser as any);
 
       const caller = userRouter.createCaller(mockCtx);
@@ -219,11 +228,14 @@ describe("userRouter", () => {
           minTicketSize: 10000,
           maxTicketSize: 100000,
           preferredSectors: ["Tech"],
-          geoFocus: "US"
+          geoFocus: "US",
+          onboardingComplete: true
         }
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as any);
+      vi.mocked(prisma.user.findUnique)
+        .mockResolvedValueOnce(existingUser as any)
+        .mockResolvedValueOnce(updatedUser as any);
       vi.mocked(prisma.user.update).mockResolvedValue(updatedUser as any);
 
       const caller = userRouter.createCaller(mockCtx);

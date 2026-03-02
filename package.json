@@ -25,6 +25,14 @@
   "pnpm": {
     "overrides": {
       "react-native-screens": "4.16.0"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "react": "19",
+        "react-dom": "19",
+        "@typescript-eslint/parser": "8",
+        "bs58": "6"
+      }
     }
   },
   "devDependencies": {
