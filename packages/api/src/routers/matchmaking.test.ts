@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { matchmakingRouter } from "./matchmaking";
 import { createMockClerkClient } from "../testUtils/mockClerk";
-import { prisma } from "@ummati/db";
+import { prisma, type User } from "@ummati/db";
 
 vi.mock("@ummati/db", () => ({
   prisma: {
@@ -29,7 +29,7 @@ describe("matchmakingRouter", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
     vi.mocked(prisma.user.findMany).mockResolvedValue([]);
     vi.mocked(prisma.match.findMany).mockResolvedValue([]);
     vi.mocked(prisma.swipe.findMany).mockResolvedValue([]);

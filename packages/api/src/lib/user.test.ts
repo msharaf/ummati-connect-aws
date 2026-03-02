@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getCurrentUserProfile } from "./user";
-import { prisma } from "@ummati/db";
+import { prisma, type User } from "@ummati/db";
 
 // Mock Prisma
 vi.mock("@ummati/db", () => ({
@@ -48,7 +48,7 @@ describe("getCurrentUserProfile", () => {
       visionaryProfile: null
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
 
     const result = await getCurrentUserProfile("user_clerk_123");
 
@@ -71,7 +71,7 @@ describe("getCurrentUserProfile", () => {
       visionaryProfile: null
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
 
     const result = await getCurrentUserProfile("user_clerk_123");
 
@@ -99,7 +99,7 @@ describe("getCurrentUserProfile", () => {
       }
     };
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
 
     const result = await getCurrentUserProfile("user_clerk_123");
 

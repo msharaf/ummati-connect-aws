@@ -15,7 +15,7 @@ import { isCategoryAllowed } from "./halalfocus";
 
 export interface MatchScore {
   userId: string;
-  profile: any;
+  profile: Record<string, unknown>;
   score: number;
   reasons: string[];
 }

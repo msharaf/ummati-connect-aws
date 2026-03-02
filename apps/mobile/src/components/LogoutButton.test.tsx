@@ -13,11 +13,18 @@ vi.mock("@clerk/clerk-expo", () => ({
 vi.mock("react-native", () => {
   const React = require("react");
   const TouchableOpacity = (props: Record<string, unknown>) => {
-    const { onPress, ...rest } = props;
+    const {
+      onPress,
+      activeOpacity,
+      accessibilityRole,
+      accessibilityLabel,
+      accessibilityState,
+      ...rest
+    } = props;
     return React.createElement("button", {
       type: "button",
       onClick: onPress,
-      "aria-label": props.accessibilityLabel,
+      "aria-label": accessibilityLabel,
       ...rest,
     }, props.children);
   };
@@ -53,7 +60,7 @@ describe("LogoutButton", () => {
 
   it("has accessibility attributes for screen readers", () => {
     const { container } = render(<LogoutButton />);
-    const button = container.querySelector('[accessibilitylabel="Log out"]');
+    const button = container.querySelector('[aria-label="Log out"]');
     expect(button).toBeTruthy();
   });
 });

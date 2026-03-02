@@ -1,5 +1,5 @@
 import { router, protectedProcedure } from "../trpc";
-import { prisma } from "@ummati/db";
+import { prisma, type Prisma } from "@ummati/db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
@@ -166,7 +166,7 @@ export const adminRouter = router({
         await prisma.investorProfile.update({
           where: { id: user.investorProfile.id },
           data: {
-            halalCategory: input.halalCategory as any,
+            halalCategory: input.halalCategory as Prisma.InvestorProfileUpdateInput["halalCategory"],
             halalResponses: input.reason
               ? {
                   adminOverride: {
@@ -183,7 +183,7 @@ export const adminRouter = router({
         await prisma.visionaryProfile.update({
           where: { id: user.visionaryProfile.id },
           data: {
-            halalCategory: input.halalCategory as any,
+            halalCategory: input.halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
             halalResponses: input.reason
               ? {
                   adminOverride: {

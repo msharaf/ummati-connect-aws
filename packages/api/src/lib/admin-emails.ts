@@ -13,5 +13,5 @@ export const ADMIN_EMAILS = [
  * Check if an email should be granted admin status
  */
 export function isAdminEmail(email: string): boolean {
-  return ADMIN_EMAILS.includes(email as any);
+  return (ADMIN_EMAILS as readonly string[]).includes(email);
 }

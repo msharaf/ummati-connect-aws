@@ -1,5 +1,5 @@
 import { router, protectedProcedure } from "../trpc";
-import { prisma } from "@ummati/db";
+import { prisma, type Prisma } from "@ummati/db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { StartupStage, RiskCategory, HalalCategory } from "@ummati/db";
@@ -284,8 +284,8 @@ export const visionaryRouter = router({
             where: { userId: user.id },
             data: {
               halalScore: result.halalScore,
-              halalCategory: result.halalCategory as any,
-              halalResponses: input.responses as any,
+              halalCategory: result.halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
+              halalResponses: input.responses as Prisma.InputJsonValue,
               rejectionReason: result.rejectionReason,
               isFlagged: true
             }
@@ -306,8 +306,8 @@ export const visionaryRouter = router({
         where: { userId: user.id },
         update: {
           halalScore: result.halalScore,
-          halalCategory: result.halalCategory as any,
-          halalResponses: input.responses as any,
+          halalCategory: result.halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
+          halalResponses: input.responses as Prisma.InputJsonValue,
           ...(user.visionaryProfile ? {} : {
             fullName: user.fullName || user.name || "",
             email: user.email,
@@ -324,8 +324,8 @@ export const visionaryRouter = router({
           startupStage: StartupStage.IDEA,
           industry: "Temporary", // Will be updated later
           halalScore: result.halalScore,
-          halalCategory: result.halalCategory as any,
-          halalResponses: input.responses as any
+          halalCategory: result.halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
+          halalResponses: input.responses as Prisma.InputJsonValue
         }
       });
 
@@ -375,7 +375,8 @@ export const visionaryRouter = router({
         responses: input.responses
       });
 
-      let { riskCategory, halalCategory, halalScore, isFlagged, isApproved, rejectionReason } = verification;
+      const { riskCategory, halalCategory, rejectionReason } = verification;
+      let { halalScore, isFlagged, isApproved } = verification;
 
       // ⚠️ DEVELOPMENT ONLY: Auto-approve all non-HARAM submissions
       // TODO: Remove this before production - restore manual review for flagged/grey cases
@@ -399,9 +400,9 @@ export const visionaryRouter = router({
         where: { userId: user.id },
         update: {
           industry: input.industry,
-          halalResponses: fullResponses as any,
+          halalResponses: fullResponses as Prisma.InputJsonValue,
           riskCategory,
-          halalCategory: halalCategory as any,
+          halalCategory: halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
           halalScore,
           isFlagged,
           isApproved,
@@ -414,9 +415,9 @@ export const visionaryRouter = router({
           startupName: "Temporary", // Will be updated later
           startupStage: StartupStage.IDEA,
           industry: input.industry,
-          halalResponses: fullResponses as any,
+          halalResponses: fullResponses as Prisma.InputJsonValue,
           riskCategory,
-          halalCategory: halalCategory as any,
+          halalCategory: halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
           halalScore,
           isFlagged,
           isApproved,

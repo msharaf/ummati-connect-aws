@@ -1,6 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createServer } from "http";
-import { URL } from "url";
+import { describe, it, expect, vi } from "vitest";
 
 // Mock dependencies
 vi.mock("@trpc/server/adapters/fetch", () => ({

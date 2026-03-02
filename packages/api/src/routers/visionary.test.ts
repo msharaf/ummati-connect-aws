@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { visionaryRouter } from "./visionary";
 import { prisma } from "@ummati/db";
-import { RiskCategory, StartupStage } from "@ummati/db";
+import { RiskCategory, StartupStage, type User, type VisionaryProfile } from "@ummati/db";
 import { createMockClerkClient } from "../testUtils/mockClerk";
 
 // Mock Prisma
@@ -65,7 +65,7 @@ describe("visionaryRouter", () => {
         }
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
 
       const caller = visionaryRouter.createCaller(mockCtx);
       const result = await caller.getMyProfile();
@@ -96,8 +96,8 @@ describe("visionaryRouter", () => {
     };
 
     it("should reject when haram categories are selected", async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-      vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+      vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as unknown as VisionaryProfile);
 
       const caller = visionaryRouter.createCaller(mockCtx);
       const result = await caller.verifyHalalCompliance({
@@ -117,8 +117,8 @@ describe("visionaryRouter", () => {
     });
 
     it("should reject when interest/riba is detected", async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-      vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+      vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as unknown as VisionaryProfile);
 
       const caller = visionaryRouter.createCaller(mockCtx);
       const result = await caller.verifyHalalCompliance({
@@ -137,8 +137,8 @@ describe("visionaryRouter", () => {
     });
 
     it("should flag grey area industries for review", async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-      vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+      vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as unknown as VisionaryProfile);
 
       const caller = visionaryRouter.createCaller(mockCtx);
       const result = await caller.verifyHalalCompliance({
@@ -159,8 +159,8 @@ describe("visionaryRouter", () => {
     });
 
     it("should approve clear halal cases", async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-      vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+      vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as unknown as VisionaryProfile);
 
       const caller = visionaryRouter.createCaller(mockCtx);
       const result = await caller.verifyHalalCompliance({
@@ -193,8 +193,8 @@ describe("visionaryRouter", () => {
     });
 
     it("should create profile if it doesn't exist", async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
-      vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
+      vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as unknown as VisionaryProfile);
 
       const caller = visionaryRouter.createCaller(mockCtx);
       await caller.verifyHalalCompliance({

@@ -1,5 +1,5 @@
 import { router, protectedProcedure } from "../trpc";
-import { prisma } from "@ummati/db";
+import { prisma, type Prisma } from "@ummati/db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { calculateHalalFocus, getHalalFocusQuestionnaire, type HalalFocusResponse } from "../lib/halalfocus";
@@ -91,8 +91,8 @@ export const investorProfileRouter = router({
         where: { userId: user.id },
         update: {
           halalScore: result.halalScore,
-          halalCategory: result.halalCategory as any,
-          halalResponses: input.responses as any,
+          halalCategory: result.halalCategory as Prisma.InvestorProfileUpdateInput["halalCategory"],
+          halalResponses: input.responses as Prisma.InputJsonValue,
           ...(user.investorProfile ? {} : {
             fullName: user.fullName || user.name || "",
             email: user.email
@@ -103,8 +103,8 @@ export const investorProfileRouter = router({
           fullName: user.fullName || user.name || "",
           email: user.email,
           halalScore: result.halalScore,
-          halalCategory: result.halalCategory as any,
-          halalResponses: input.responses as any
+          halalCategory: result.halalCategory as Prisma.InvestorProfileUpdateInput["halalCategory"],
+          halalResponses: input.responses as Prisma.InputJsonValue
         }
       });
 

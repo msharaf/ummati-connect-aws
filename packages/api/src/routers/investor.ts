@@ -1,5 +1,5 @@
 import { router, protectedProcedure } from "../trpc";
-import { prisma } from "@ummati/db";
+import { prisma, type Prisma } from "@ummati/db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
@@ -58,7 +58,7 @@ export const investorRouter = router({
       }
 
       // Build where clause for filters
-      const where: any = {
+      const where: Prisma.UserWhereInput = {
         role: "VISIONARY",
         visionaryProfile: {
           isApproved: true,
@@ -126,7 +126,7 @@ export const investorRouter = router({
     }),
 
   // Get filter options for browsing
-  getFilterOptions: protectedProcedure.query(async ({ ctx }) => {
+  getFilterOptions: protectedProcedure.query(async ({ _ctx }) => {
     const sectors = await prisma.visionaryProfile.findMany({
       select: { sector: true },
       distinct: ["sector"]
@@ -156,7 +156,7 @@ export const investorRouter = router({
   // Get detailed visionary profile
   getVisionaryDetails: protectedProcedure
     .input(z.object({ visionaryId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ _ctx, input }) => {
       const visionary = await prisma.user.findUnique({
         where: { id: input.visionaryId },
         include: {

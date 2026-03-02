@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { adminRouter } from "./admin";
-import { prisma } from "@ummati/db";
+import { prisma, type User, type InvestorProfile, type VisionaryProfile } from "@ummati/db";
 import { createMockClerkClient } from "../testUtils/mockClerk";
 
 // Mock Prisma
@@ -44,7 +44,7 @@ describe("adminRouter", () => {
     it("should return true when user is admin", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         isAdmin: true
-      } as any);
+      } as unknown as User);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
       const result = await caller.checkAdmin();
@@ -55,7 +55,7 @@ describe("adminRouter", () => {
     it("should return false when user is not admin", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         isAdmin: false
-      } as any);
+      } as unknown as User);
 
       const caller = adminRouter.createCaller(mockUserCtx);
       const result = await caller.checkAdmin();
@@ -123,8 +123,8 @@ describe("adminRouter", () => {
 
     it("should return all users when admin", async () => {
       vi.mocked(prisma.user.findUnique)
-        .mockResolvedValueOnce(mockAdminUser as any);
-      vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as any);
+        .mockResolvedValueOnce(mockAdminUser as unknown as User);
+      vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as unknown as User[]);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
       const result = await caller.getAllUsers();
@@ -143,7 +143,7 @@ describe("adminRouter", () => {
         isAdmin: false
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
       const caller = adminRouter.createCaller(mockUserCtx);
 
@@ -180,8 +180,8 @@ describe("adminRouter", () => {
 
     it("should return user when admin", async () => {
       vi.mocked(prisma.user.findUnique)
-        .mockResolvedValueOnce(mockAdminUser as any)
-        .mockResolvedValueOnce(mockTargetUser as any);
+        .mockResolvedValueOnce(mockAdminUser as unknown as User)
+        .mockResolvedValueOnce(mockTargetUser as unknown as User);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
       const result = await caller.getUserById({ userId: "target_123" });
@@ -197,7 +197,7 @@ describe("adminRouter", () => {
         isAdmin: false
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
       const caller = adminRouter.createCaller(mockUserCtx);
 
@@ -206,7 +206,7 @@ describe("adminRouter", () => {
 
     it("should throw NOT_FOUND when target user does not exist", async () => {
       vi.mocked(prisma.user.findUnique)
-        .mockResolvedValueOnce(mockAdminUser as any)
+        .mockResolvedValueOnce(mockAdminUser as unknown as User)
         .mockResolvedValueOnce(null);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
@@ -233,9 +233,9 @@ describe("adminRouter", () => {
       };
 
       vi.mocked(prisma.user.findUnique)
-        .mockResolvedValueOnce(mockAdminUser as any)
-        .mockResolvedValueOnce(mockInvestorUser as any);
-      vi.mocked(prisma.investorProfile.update).mockResolvedValue({} as any);
+        .mockResolvedValueOnce(mockAdminUser as unknown as User)
+        .mockResolvedValueOnce(mockInvestorUser as unknown as User);
+      vi.mocked(prisma.investorProfile.update).mockResolvedValue({} as unknown as InvestorProfile);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
       const result = await caller.overrideHalalCategory({
@@ -266,9 +266,9 @@ describe("adminRouter", () => {
       };
 
       vi.mocked(prisma.user.findUnique)
-        .mockResolvedValueOnce(mockAdminUser as any)
-        .mockResolvedValueOnce(mockVisionaryUser as any);
-      vi.mocked(prisma.visionaryProfile.update).mockResolvedValue({} as any);
+        .mockResolvedValueOnce(mockAdminUser as unknown as User)
+        .mockResolvedValueOnce(mockVisionaryUser as unknown as User);
+      vi.mocked(prisma.visionaryProfile.update).mockResolvedValue({} as unknown as VisionaryProfile);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
       const result = await caller.overrideHalalCategory({
@@ -287,7 +287,7 @@ describe("adminRouter", () => {
         isAdmin: false
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
       const caller = adminRouter.createCaller(mockUserCtx);
 
@@ -301,7 +301,7 @@ describe("adminRouter", () => {
 
     it("should throw NOT_FOUND when target user does not exist", async () => {
       vi.mocked(prisma.user.findUnique)
-        .mockResolvedValueOnce(mockAdminUser as any)
+        .mockResolvedValueOnce(mockAdminUser as unknown as User)
         .mockResolvedValueOnce(null);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
@@ -323,8 +323,8 @@ describe("adminRouter", () => {
       };
 
       vi.mocked(prisma.user.findUnique)
-        .mockResolvedValueOnce(mockAdminUser as any)
-        .mockResolvedValueOnce(mockUserWithoutProfile as any);
+        .mockResolvedValueOnce(mockAdminUser as unknown as User)
+        .mockResolvedValueOnce(mockUserWithoutProfile as unknown as User);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
 
@@ -353,9 +353,9 @@ describe("adminRouter", () => {
       };
 
       vi.mocked(prisma.user.findUnique)
-        .mockResolvedValueOnce(mockAdminUser as any)
-        .mockResolvedValueOnce(mockVisionaryUser as any);
-      vi.mocked(prisma.visionaryProfile.update).mockResolvedValue({} as any);
+        .mockResolvedValueOnce(mockAdminUser as unknown as User)
+        .mockResolvedValueOnce(mockVisionaryUser as unknown as User);
+      vi.mocked(prisma.visionaryProfile.update).mockResolvedValue({} as unknown as VisionaryProfile);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
       const result = await caller.approveRejectUser({
@@ -384,9 +384,9 @@ describe("adminRouter", () => {
       };
 
       vi.mocked(prisma.user.findUnique)
-        .mockResolvedValueOnce(mockAdminUser as any)
-        .mockResolvedValueOnce(mockVisionaryUser as any);
-      vi.mocked(prisma.visionaryProfile.update).mockResolvedValue({} as any);
+        .mockResolvedValueOnce(mockAdminUser as unknown as User)
+        .mockResolvedValueOnce(mockVisionaryUser as unknown as User);
+      vi.mocked(prisma.visionaryProfile.update).mockResolvedValue({} as unknown as VisionaryProfile);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
       const result = await caller.approveRejectUser({
@@ -413,7 +413,7 @@ describe("adminRouter", () => {
         isAdmin: false
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
       const caller = adminRouter.createCaller(mockUserCtx);
 
@@ -427,7 +427,7 @@ describe("adminRouter", () => {
 
     it("should throw NOT_FOUND when user or profile does not exist", async () => {
       vi.mocked(prisma.user.findUnique)
-        .mockResolvedValueOnce(mockAdminUser as any)
+        .mockResolvedValueOnce(mockAdminUser as unknown as User)
         .mockResolvedValueOnce(null);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
@@ -449,7 +449,7 @@ describe("adminRouter", () => {
     };
 
     it("should return reports when admin", async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockAdminUser as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockAdminUser as unknown as User);
       vi.mocked(prisma.user.count)
         .mockResolvedValueOnce(100) // totalUsers
         .mockResolvedValueOnce(50) // investors
@@ -477,7 +477,7 @@ describe("adminRouter", () => {
         isAdmin: false
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
       const caller = adminRouter.createCaller(mockUserCtx);
 
@@ -493,8 +493,8 @@ describe("adminRouter", () => {
     };
 
     it("should ban user when admin", async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockAdminUser as any);
-      vi.mocked(prisma.user.update).mockResolvedValue({} as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockAdminUser as unknown as User);
+      vi.mocked(prisma.user.update).mockResolvedValue({} as unknown as User);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
       const result = await caller.banUser({
@@ -513,8 +513,8 @@ describe("adminRouter", () => {
     });
 
     it("should unban user when admin", async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockAdminUser as any);
-      vi.mocked(prisma.user.update).mockResolvedValue({} as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockAdminUser as unknown as User);
+      vi.mocked(prisma.user.update).mockResolvedValue({} as unknown as User);
 
       const caller = adminRouter.createCaller(mockAdminCtx);
       const result = await caller.banUser({
@@ -536,7 +536,7 @@ describe("adminRouter", () => {
         isAdmin: false
       };
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as any);
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
       const caller = adminRouter.createCaller(mockUserCtx);
 

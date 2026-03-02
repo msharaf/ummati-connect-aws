@@ -10,7 +10,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(__dirname, "..", ".env") });
 
-import { createServer } from "http";
+import { createServer, type IncomingMessage } from "http";
 import { URL } from "url";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { rootRouter } from "./root";
@@ -31,7 +31,7 @@ const corsHeaders = {
 };
 
 // Helper to read request body
-function getBody(req: any): Promise<string> {
+function getBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve) => {
     let body = "";
     req.on("data", (chunk: Buffer) => {
