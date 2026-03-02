@@ -3,7 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-import { BackHandler, Platform, View, ActivityIndicator, Text } from "react-native";
+import { BackHandler, Platform, View, ActivityIndicator, Text, StyleSheet } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { ClerkProvider, publishableKey, tokenCache } from "../src/lib/clerk";
 import { TRPCProvider, queryClient } from "../src/lib/trpc";
@@ -17,16 +17,23 @@ function PushTokenRegistrar() {
   return null;
 }
 
+const splashStyles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#ecfdf5" },
+  content: { flex: 1, alignItems: "center", justifyContent: "center" },
+  text: { marginTop: 16, color: "#4b5563", fontSize: 16 }
+});
+
 /**
  * Loading splash - shown while Clerk auth is initializing.
  * tRPC client will NOT exist until this screen is gone.
+ * Uses StyleSheet (not className) to avoid NativeWind styled-component useMemo during Clerk init.
  */
 function AuthLoadingSplash() {
   return (
-    <SafeAreaView className="flex-1 bg-emerald-50">
-      <View className="flex-1 items-center justify-center">
+    <SafeAreaView style={splashStyles.container}>
+      <View style={splashStyles.content}>
         <ActivityIndicator size="large" color="#047857" />
-        <Text className="mt-4 text-gray-600">Loading...</Text>
+        <Text style={splashStyles.text}>Loading...</Text>
       </View>
     </SafeAreaView>
   );

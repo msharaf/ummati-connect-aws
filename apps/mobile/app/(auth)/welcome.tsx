@@ -1,6 +1,7 @@
 "use client";
 
-import { useOAuth } from "@clerk/clerk-expo";
+import { useAuth, useOAuth } from "@clerk/clerk-expo";
+import { Redirect } from "expo-router";
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useState, useCallback } from "react";
 import * as WebBrowser from "expo-web-browser";
@@ -17,9 +18,9 @@ const LinearGradient = ExpoLinearGradient as unknown as React.ComponentType<{
 }>;
 
 export default function WelcomeScreen() {
+  const { isLoaded, isSignedIn } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
-
   const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: "oauth_google" });
   const { startOAuthFlow: startAppleOAuth } = useOAuth({ strategy: "oauth_apple" });
 
@@ -61,6 +62,9 @@ export default function WelcomeScreen() {
   const onGoogleSignIn = useCallback(() => runOAuth("oauth_google"), [runOAuth]);
   const onAppleSignIn = useCallback(() => runOAuth("oauth_apple"), [runOAuth]);
 
+  if (!isLoaded) return null;
+  if (isSignedIn) return <Redirect href="/(auth)/choose-role" />;
+
   return (
     <LinearGradient
       colors={["#0f172a", "#1e293b", "#0f172a"]}
@@ -96,7 +100,7 @@ export default function WelcomeScreen() {
           <TouchableOpacity
             className="w-full bg-white rounded-xl py-4 mb-3"
             onPress={onGoogleSignIn}
-            disabled={!!loading}
+            disabled={!!loading || isSignedIn}
           >
             {loading === "oauth_google" ? (
               <ActivityIndicator color="#0f172a" />
@@ -110,7 +114,7 @@ export default function WelcomeScreen() {
           <TouchableOpacity
             className="w-full bg-black rounded-xl py-4 border border-white/30"
             onPress={onAppleSignIn}
-            disabled={!!loading}
+            disabled={!!loading || isSignedIn}
           >
             {loading === "oauth_apple" ? (
               <ActivityIndicator color="white" />
