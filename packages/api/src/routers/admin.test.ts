@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { adminRouter } from "./admin";
+import { createCallerFactory } from "../trpc";
 import { prisma, type User, type InvestorProfile, type VisionaryProfile } from "@ummati/db";
 import { createMockClerkClient } from "../testUtils/mockClerk";
+
+const createCaller = createCallerFactory(adminRouter);
 
 // Mock Prisma
 vi.mock("@ummati/db", () => ({
@@ -28,11 +31,13 @@ vi.mock("@ummati/db", () => ({
 describe("adminRouter", () => {
   const mockAdminCtx = {
     userId: "admin_clerk_123",
+    auth: null,
     clerk: createMockClerkClient()
   };
 
   const mockUserCtx = {
     userId: "user_clerk_123",
+    auth: null,
     clerk: createMockClerkClient()
   };
 
@@ -46,7 +51,7 @@ describe("adminRouter", () => {
         isAdmin: true
       } as unknown as User);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
       const result = await caller.checkAdmin();
 
       expect(result.isAdmin).toBe(true);
@@ -57,7 +62,7 @@ describe("adminRouter", () => {
         isAdmin: false
       } as unknown as User);
 
-      const caller = adminRouter.createCaller(mockUserCtx);
+      const caller = createCaller(mockUserCtx);
       const result = await caller.checkAdmin();
 
       expect(result.isAdmin).toBe(false);
@@ -66,7 +71,7 @@ describe("adminRouter", () => {
     it("should return false when user does not exist", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
 
-      const caller = adminRouter.createCaller(mockUserCtx);
+      const caller = createCaller(mockUserCtx);
       const result = await caller.checkAdmin();
 
       expect(result.isAdmin).toBe(false);
@@ -126,7 +131,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(mockAdminUser as unknown as User);
       vi.mocked(prisma.user.findMany).mockResolvedValue(mockUsers as unknown as User[]);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
       const result = await caller.getAllUsers();
 
       expect(result.users).toHaveLength(2);
@@ -145,7 +150,7 @@ describe("adminRouter", () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
-      const caller = adminRouter.createCaller(mockUserCtx);
+      const caller = createCaller(mockUserCtx);
 
       await expect(caller.getAllUsers()).rejects.toThrow(TRPCError);
       await expect(caller.getAllUsers()).rejects.toThrow("Admin access required");
@@ -154,7 +159,7 @@ describe("adminRouter", () => {
     it("should throw FORBIDDEN when user does not exist", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
 
-      const caller = adminRouter.createCaller(mockUserCtx);
+      const caller = createCaller(mockUserCtx);
 
       await expect(caller.getAllUsers()).rejects.toThrow(TRPCError);
       await expect(caller.getAllUsers()).rejects.toThrow("Admin access required");
@@ -183,7 +188,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(mockAdminUser as unknown as User)
         .mockResolvedValueOnce(mockTargetUser as unknown as User);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
       const result = await caller.getUserById({ userId: "target_123" });
 
       expect(result.id).toBe("target_123");
@@ -199,7 +204,7 @@ describe("adminRouter", () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
-      const caller = adminRouter.createCaller(mockUserCtx);
+      const caller = createCaller(mockUserCtx);
 
       await expect(caller.getUserById({ userId: "target_123" })).rejects.toThrow("Admin access required");
     });
@@ -209,7 +214,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(mockAdminUser as unknown as User)
         .mockResolvedValueOnce(null);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
 
       await expect(caller.getUserById({ userId: "nonexistent_123" })).rejects.toThrow("User not found");
     });
@@ -237,7 +242,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(mockInvestorUser as unknown as User);
       vi.mocked(prisma.investorProfile.update).mockResolvedValue({} as unknown as InvestorProfile);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
       const result = await caller.overrideHalalCategory({
         userId: "investor_123",
         halalCategory: "halal",
@@ -270,7 +275,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(mockVisionaryUser as unknown as User);
       vi.mocked(prisma.visionaryProfile.update).mockResolvedValue({} as unknown as VisionaryProfile);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
       const result = await caller.overrideHalalCategory({
         userId: "visionary_123",
         halalCategory: "grey",
@@ -289,7 +294,7 @@ describe("adminRouter", () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
-      const caller = adminRouter.createCaller(mockUserCtx);
+      const caller = createCaller(mockUserCtx);
 
       await expect(
         caller.overrideHalalCategory({
@@ -304,7 +309,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(mockAdminUser as unknown as User)
         .mockResolvedValueOnce(null);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
 
       await expect(
         caller.overrideHalalCategory({
@@ -326,7 +331,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(mockAdminUser as unknown as User)
         .mockResolvedValueOnce(mockUserWithoutProfile as unknown as User);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
 
       await expect(
         caller.overrideHalalCategory({
@@ -357,7 +362,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(mockVisionaryUser as unknown as User);
       vi.mocked(prisma.visionaryProfile.update).mockResolvedValue({} as unknown as VisionaryProfile);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
       const result = await caller.approveRejectUser({
         userId: "visionary_123",
         action: "approve"
@@ -388,7 +393,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(mockVisionaryUser as unknown as User);
       vi.mocked(prisma.visionaryProfile.update).mockResolvedValue({} as unknown as VisionaryProfile);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
       const result = await caller.approveRejectUser({
         userId: "visionary_123",
         action: "reject",
@@ -415,7 +420,7 @@ describe("adminRouter", () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
-      const caller = adminRouter.createCaller(mockUserCtx);
+      const caller = createCaller(mockUserCtx);
 
       await expect(
         caller.approveRejectUser({
@@ -430,7 +435,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(mockAdminUser as unknown as User)
         .mockResolvedValueOnce(null);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
 
       await expect(
         caller.approveRejectUser({
@@ -459,7 +464,7 @@ describe("adminRouter", () => {
         .mockResolvedValueOnce(5); // forbiddenUsers
       vi.mocked(prisma.match.count).mockResolvedValue(200);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
       const result = await caller.getReports();
 
       expect(result.totalUsers).toBe(100);
@@ -479,7 +484,7 @@ describe("adminRouter", () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
-      const caller = adminRouter.createCaller(mockUserCtx);
+      const caller = createCaller(mockUserCtx);
 
       await expect(caller.getReports()).rejects.toThrow(TRPCError);
     });
@@ -496,7 +501,7 @@ describe("adminRouter", () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockAdminUser as unknown as User);
       vi.mocked(prisma.user.update).mockResolvedValue({} as unknown as User);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
       const result = await caller.banUser({
         userId: "user_123",
         banned: true,
@@ -516,7 +521,7 @@ describe("adminRouter", () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockAdminUser as unknown as User);
       vi.mocked(prisma.user.update).mockResolvedValue({} as unknown as User);
 
-      const caller = adminRouter.createCaller(mockAdminCtx);
+      const caller = createCaller(mockAdminCtx);
       const result = await caller.banUser({
         userId: "user_123",
         banned: false
@@ -538,7 +543,7 @@ describe("adminRouter", () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockNonAdminUser as unknown as User);
 
-      const caller = adminRouter.createCaller(mockUserCtx);
+      const caller = createCaller(mockUserCtx);
 
       await expect(
         caller.banUser({

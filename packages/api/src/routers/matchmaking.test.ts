@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { matchmakingRouter } from "./matchmaking";
+import { createCallerFactory } from "../trpc";
 import { createMockClerkClient } from "../testUtils/mockClerk";
 import { prisma, type User } from "@ummati/db";
+
+const createCaller = createCallerFactory(matchmakingRouter);
 
 vi.mock("@ummati/db", () => ({
   prisma: {
@@ -16,6 +19,7 @@ vi.mock("@ummati/db", () => ({
 describe("matchmakingRouter", () => {
   const mockCtx = {
     userId: "user_clerk_123",
+    auth: null,
     clerk: createMockClerkClient()
   };
 
@@ -39,7 +43,7 @@ describe("matchmakingRouter", () => {
 
   describe("getRecommendations query", () => {
     it("should return recommendations structure", async () => {
-      const caller = matchmakingRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       const result = await caller.getRecommendations();
 
       expect(result).toHaveProperty("recommendations");
@@ -49,7 +53,7 @@ describe("matchmakingRouter", () => {
 
   describe("getMatches query", () => {
     it("should return matches structure", async () => {
-      const caller = matchmakingRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       const result = await caller.getMatches();
 
       expect(Array.isArray(result)).toBe(true);

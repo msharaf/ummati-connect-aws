@@ -20,6 +20,7 @@ const t = initTRPC.context<Context>().create({
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
+export const createCallerFactory = t.createCallerFactory;
 
 /**
  * Protected procedure - throws UNAUTHORIZED when ctx.userId is null.

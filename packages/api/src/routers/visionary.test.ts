@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { visionaryRouter } from "./visionary";
+import { createCallerFactory } from "../trpc";
 import { prisma } from "@ummati/db";
 import { RiskCategory, StartupStage, type User, type VisionaryProfile } from "@ummati/db";
 import { createMockClerkClient } from "../testUtils/mockClerk";
@@ -34,9 +35,12 @@ vi.mock("@ummati/db", () => ({
   }
 }));
 
+const createCaller = createCallerFactory(visionaryRouter);
+
 describe("visionaryRouter", () => {
   const mockCtx = {
     userId: "user_clerk_123",
+    auth: null,
     clerk: createMockClerkClient()
   };
 
@@ -67,7 +71,7 @@ describe("visionaryRouter", () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
 
-      const caller = visionaryRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       const result = await caller.getMyProfile();
 
       expect(result).toBeDefined();
@@ -78,7 +82,7 @@ describe("visionaryRouter", () => {
     it("should return null when user does not exist", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
 
-      const caller = visionaryRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       const result = await caller.getMyProfile();
 
       expect(result).toBeNull();
@@ -99,7 +103,7 @@ describe("visionaryRouter", () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
       vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as unknown as VisionaryProfile);
 
-      const caller = visionaryRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       const result = await caller.verifyHalalCompliance({
         industry: "Tech",
         responses: {
@@ -120,7 +124,7 @@ describe("visionaryRouter", () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
       vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as unknown as VisionaryProfile);
 
-      const caller = visionaryRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       const result = await caller.verifyHalalCompliance({
         industry: "FinTech",
         responses: {
@@ -140,7 +144,7 @@ describe("visionaryRouter", () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
       vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as unknown as VisionaryProfile);
 
-      const caller = visionaryRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       const result = await caller.verifyHalalCompliance({
         industry: "FinTech",
         responses: {
@@ -162,7 +166,7 @@ describe("visionaryRouter", () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
       vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as unknown as VisionaryProfile);
 
-      const caller = visionaryRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       const result = await caller.verifyHalalCompliance({
         industry: "EdTech",
         responses: {
@@ -182,7 +186,7 @@ describe("visionaryRouter", () => {
     it("should throw error when user not found", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
 
-      const caller = visionaryRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
 
       await expect(
         caller.verifyHalalCompliance({
@@ -196,7 +200,7 @@ describe("visionaryRouter", () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as unknown as User);
       vi.mocked(prisma.visionaryProfile.upsert).mockResolvedValue({} as unknown as VisionaryProfile);
 
-      const caller = visionaryRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       await caller.verifyHalalCompliance({
         industry: "EdTech",
         responses: { q1: "Test", q2: "Test" }

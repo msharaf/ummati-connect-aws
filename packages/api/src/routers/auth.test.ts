@@ -1,10 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { authRouter } from "./auth";
+import { createCallerFactory } from "../trpc";
 import { createMockClerkClient } from "../testUtils/mockClerk";
+
+const createCaller = createCallerFactory(authRouter);
 
 describe("authRouter", () => {
   const mockCtx = {
     userId: "user_123",
+    auth: null,
     clerk: createMockClerkClient()
   };
 
@@ -14,7 +18,7 @@ describe("authRouter", () => {
 
   describe("ping query", () => {
     it("should return pong message", async () => {
-      const caller = authRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       const result = await caller.ping();
 
       expect(result.message).toBe("pong");
@@ -23,7 +27,7 @@ describe("authRouter", () => {
 
   describe("me query", () => {
     it("should return user info when authenticated", async () => {
-      const caller = authRouter.createCaller(mockCtx);
+      const caller = createCaller(mockCtx);
       const result = await caller.me();
 
       expect(result.userId).toBe("user_123");
