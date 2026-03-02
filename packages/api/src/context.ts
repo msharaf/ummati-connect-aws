@@ -28,10 +28,15 @@ function getVerifyFailureReason(error: unknown): string {
 }
 
 // Clerk client for API calls (users.getUser etc.) - uses CLERK_SECRET_KEY
-// JWT verification uses JWKS only, NOT secret key
-const clerk = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY
-});
+// Lazy init: createClerkClient must run AFTER dotenv loads (server.ts config()).
+// Module load order: context.ts is imported before config() runs, so secretKey would be undefined.
+let _clerk: ReturnType<typeof createClerkClient> | null = null;
+function getClerk(): ReturnType<typeof createClerkClient> {
+  if (!_clerk) {
+    _clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+  }
+  return _clerk;
+}
 
 /**
  * Creates tRPC context from auth token.
@@ -89,7 +94,7 @@ export async function createContext(opts: CreateContextOptions = {}) {
   return {
     userId,
     auth,
-    clerk
+    clerk: getClerk()
   };
 }
 

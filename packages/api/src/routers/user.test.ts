@@ -13,6 +13,7 @@ vi.mock("@ummati/db", () => ({
   prisma: {
     user: {
       findUnique: vi.fn(),
+      create: vi.fn(),
       update: vi.fn()
     }
   }
@@ -27,6 +28,7 @@ describe("userRouter", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || "sk_test_fake";
   });
 
   describe("me query", () => {
@@ -163,6 +165,160 @@ describe("userRouter", () => {
       expect(result.onboardingComplete).toBe(false);
     });
 
+    it("should create user when user does not exist in DB (user-missing path)", async () => {
+      const newUser = {
+        id: "user_new",
+        clerkId: "user_clerk_123",
+        email: "test@example.com",
+        name: "Test User",
+        fullName: "Test User",
+        role: "INVESTOR" as const,
+        avatarUrl: null,
+        location: null,
+        investorProfile: null,
+        visionaryProfile: null
+      };
+      vi.mocked(prisma.user.findUnique)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(newUser as unknown as User);
+      vi.mocked(prisma.user.create).mockResolvedValue(newUser as unknown as User);
+      vi.mocked(prisma.user.update).mockResolvedValue(newUser as unknown as User);
+
+      const caller = createCaller(mockCtx);
+      const result = await caller.setRole({ role: "INVESTOR" });
+
+      expect(prisma.user.create).toHaveBeenCalledWith({
+        data: {
+          clerkId: "user_clerk_123",
+          email: "test@example.com",
+          name: "Test User",
+          fullName: "Test User",
+          role: "INVESTOR",
+          isAdmin: false
+        }
+      });
+      expect(result.role).toBe("INVESTOR");
+    });
+
+    it("should link email-existing user when new clerkId in dev mode", async () => {
+      const existingByEmail = {
+        id: "user_123",
+        clerkId: "old_clerk_456",
+        email: "test@example.com",
+        name: "Test User",
+        role: null,
+        avatarUrl: null,
+        location: null,
+        investorProfile: null,
+        visionaryProfile: null
+      };
+      const linkedUser = {
+        ...existingByEmail,
+        clerkId: "user_clerk_123",
+        role: "INVESTOR" as const
+      };
+      const origNodeEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = "development";
+
+      vi.mocked(prisma.user.findUnique)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(existingByEmail as unknown as User)
+        .mockResolvedValueOnce(linkedUser as unknown as User);
+      vi.mocked(prisma.user.update)
+        .mockResolvedValueOnce(linkedUser as unknown as User)
+        .mockResolvedValueOnce(linkedUser as unknown as User);
+
+      const caller = createCaller(mockCtx);
+      const result = await caller.setRole({ role: "INVESTOR" });
+
+      expect(prisma.user.update).toHaveBeenNthCalledWith(1, {
+        where: { email: "test@example.com" },
+        data: { clerkId: "user_clerk_123" }
+      });
+      expect(prisma.user.update).toHaveBeenNthCalledWith(2, {
+        where: { clerkId: "user_clerk_123" },
+        data: { role: "INVESTOR" }
+      });
+      expect(result.role).toBe("INVESTOR");
+
+      process.env.NODE_ENV = origNodeEnv;
+    });
+
+    it("should throw CONFLICT when email exists and different clerkId (not dev)", async () => {
+      const existingByEmail = {
+        id: "user_123",
+        clerkId: "old_clerk_456",
+        email: "test@example.com",
+        name: "Test User",
+        role: null,
+        avatarUrl: null,
+        location: null,
+        investorProfile: null,
+        visionaryProfile: null
+      };
+      const origNodeEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = "production";
+
+      vi.mocked(prisma.user.findUnique)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(existingByEmail as unknown as User);
+
+      const caller = createCaller(mockCtx);
+
+      await expect(caller.setRole({ role: "INVESTOR" })).rejects.toThrow(
+        "An account with this email already exists"
+      );
+
+      process.env.NODE_ENV = origNodeEnv;
+    });
+
+    it("should succeed on P2002 email conflict via find-by-email linking (dev)", async () => {
+      const existingByEmail = {
+        id: "user_123",
+        clerkId: "old_clerk_456",
+        email: "test@example.com",
+        name: "Test User",
+        role: null,
+        avatarUrl: null,
+        location: null,
+        investorProfile: null,
+        visionaryProfile: null
+      };
+      const linkedUser = {
+        ...existingByEmail,
+        clerkId: "user_clerk_123",
+        role: "INVESTOR" as const
+      };
+      const prismaError = new Error("Unique constraint failed on the fields: (`email`)");
+      (prismaError as { code?: string; meta?: { target?: string[] } }).code = "P2002";
+      (prismaError as { code?: string; meta?: { target?: string[] } }).meta = { target: ["email"] };
+
+      const origNodeEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = "development";
+
+      vi.mocked(prisma.user.findUnique)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(existingByEmail as unknown as User)
+        .mockResolvedValueOnce(linkedUser as unknown as User);
+      vi.mocked(prisma.user.create).mockRejectedValue(prismaError);
+      vi.mocked(prisma.user.update)
+        .mockResolvedValueOnce(linkedUser as unknown as User)
+        .mockResolvedValueOnce(linkedUser as unknown as User);
+
+      const caller = createCaller(mockCtx);
+      const result = await caller.setRole({ role: "INVESTOR" });
+
+      expect(prisma.user.update).toHaveBeenNthCalledWith(1, {
+        where: { email: "test@example.com" },
+        data: { clerkId: "user_clerk_123" }
+      });
+      expect(result.role).toBe("INVESTOR");
+
+      process.env.NODE_ENV = origNodeEnv;
+    });
+
     it("should throw error when user does not exist and Clerk fails", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
       const clerkWithFailingGetUser = createMockClerkClient({
@@ -179,7 +335,7 @@ describe("userRouter", () => {
         TRPCError
       );
       await expect(caller.setRole({ role: "INVESTOR" })).rejects.toThrow(
-        "Failed to create user"
+        "User lookup failed"
       );
     });
 

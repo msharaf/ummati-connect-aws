@@ -19,7 +19,10 @@ export default function AuthLayout() {
       }}
     >
       <Stack.Screen name="welcome" options={{ headerShown: false }} />
-      <Stack.Screen name="choose-role" />
+      <Stack.Screen
+        name="choose-role"
+        options={{ headerBackVisible: false }}
+      />
     </Stack>
   );
 }

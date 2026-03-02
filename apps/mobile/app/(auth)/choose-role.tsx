@@ -14,8 +14,6 @@ const LinearGradient = ExpoLinearGradient as unknown as React.ComponentType<{
 }>;
 import { SafeAreaView } from "react-native-safe-area-context";
 import { trpc } from "../../src/lib/trpc";
-import { BackButton } from "../../src/components/BackButton";
-
 type Role = "INVESTOR" | "VISIONARY";
 
 export default function ChooseRoleScreen() {
@@ -120,11 +118,6 @@ export default function ChooseRoleScreen() {
       style={{ flex: 1 }}
     >
       <SafeAreaView className="flex-1">
-        {/* Back Button */}
-        <View className="absolute top-0 left-0 z-10 p-4">
-          <BackButton fallbackRoute="/(auth)/welcome" />
-        </View>
-        
         <View className="flex-1 items-center justify-center p-6">
         {/* Header */}
         <View className="items-center mb-12">
