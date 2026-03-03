@@ -33,12 +33,12 @@ export default function ChooseRoleScreen() {
       // Only invalidate user.me (not user.getMe) to avoid duplicate refetches
       // Wait for the query to refetch before navigating to avoid race condition
       await utils.user.me.invalidate();
-      
+
       if (__DEV__) {
         // eslint-disable-next-line no-console
         console.log("[ChooseRole] Role set successfully, navigating to:", data.role);
       }
-      
+
       if (data.role === "INVESTOR") {
         router.replace("/(tabs)/investor");
       } else if (data.role === "VISIONARY") {

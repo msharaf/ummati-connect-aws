@@ -3,9 +3,15 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useBackHandler } from "../hooks/useBackHandler";
 
+function normalizeHref(to: string): string {
+  return to.startsWith("/") ? to : `/${to}`;
+}
+
 interface BackButtonProps {
   /** Custom fallback route if no history exists (default: "/(tabs)/swipe") */
   fallbackRoute?: string;
+  /** When true, always replace to fallbackRoute (deterministic); when false, use router.back() if possible */
+  alwaysUseFallback?: boolean;
   /** Custom icon color (default: "#047857" - emerald-600) */
   iconColor?: string;
   /** Custom size (default: 24) */
@@ -21,6 +27,7 @@ interface BackButtonProps {
  */
 export function BackButton({
   fallbackRoute = "/(tabs)/swipe",
+  alwaysUseFallback = false,
   iconColor = "#047857",
   iconSize = 24,
   className = ""
@@ -28,11 +35,13 @@ export function BackButton({
   const router = useRouter();
 
   const handleBack = () => {
-    // Try to go back, if no history, navigate to fallback
-    if (router.canGoBack()) {
+    const target = normalizeHref(fallbackRoute);
+    if (alwaysUseFallback) {
+      router.replace(target);
+    } else if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace(fallbackRoute as any);
+      router.replace(target);
     }
   };
 

@@ -12,6 +12,10 @@ import { trpc } from "../src/lib/trpc";
 import { usePushToken } from "../hooks/usePushToken";
 import { useBackHandler } from "../src/hooks/useBackHandler";
 
+function normalizeHref(to: string): string {
+  return to.startsWith("/") ? to : `/${to}`;
+}
+
 function PushTokenRegistrar() {
   usePushToken();
   return null;
@@ -89,6 +93,7 @@ function AuthenticatedApp() {
     const isOnHalalFocus = path.includes("halalfocus");
     const isOnInvestorSetup = path.includes("investor/setup");
     const inTabsGroup = segments[0] === "(tabs)";
+    const isOnInvestorIndex = inTabsGroup && path.includes("investor") && !path.includes("investor/setup") && !path.includes("investor/halalfocus");
 
     // Reset redirect guard when we've arrived (prevents infinite loop)
     if (inTabsGroup || isOnHalalFocus || isOnInvestorSetup) {
@@ -136,8 +141,11 @@ function AuthenticatedApp() {
         return;
       }
       if (!investorOnboardingComplete && !isOnInvestorSetup) {
+        // Skip when on investor index or choose-role - investor index handles redirect to setup
+        if (isOnInvestorIndex || isChooseRole) return;
+        // Redirect to investor index; it will redirect to setup (avoids root REPLACE to nested tab)
         redirectingRef.current = true;
-        queueMicrotask(() => routerRef.current.replace("/(tabs)/investor/setup"));
+        queueMicrotask(() => routerRef.current.replace("/(tabs)/investor"));
         return;
       }
     }
@@ -222,8 +230,8 @@ export default function RootLayout() {
     <ClerkProvider
       publishableKey={publishableKey}
       tokenCache={tokenCache}
-      routerPush={(to: string) => router.push(to)}
-      routerReplace={(to: string) => router.replace(to)}
+      routerPush={(to: string) => router.push(normalizeHref(to))}
+      routerReplace={(to: string) => router.replace(normalizeHref(to))}
     >
       <RootLayoutWithQuery />
     </ClerkProvider>

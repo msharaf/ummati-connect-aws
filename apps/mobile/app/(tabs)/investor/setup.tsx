@@ -43,8 +43,9 @@ export default function InvestorSetupScreen() {
   const router = useRouter();
   const utils = trpc.useUtils();
 
-  const { data: userData } = trpc.user.me.useQuery();
+  const { data: userData } = trpc.user.me.useQuery(undefined, { retry: false });
   const halalFocusVerified = userData?.halalFocusVerified ?? false;
+  const onboardingComplete = userData?.onboardingComplete ?? false;
 
   const { data: existingProfile, isLoading: isLoadingProfile } =
     trpc.investorProfile.getMyInvestorProfile.useQuery();
@@ -187,7 +188,10 @@ export default function InvestorSetupScreen() {
     <SafeAreaView className="flex-1 bg-emerald-50">
       {/* Back Button */}
       <View className="absolute top-0 left-0 z-10 p-4">
-        <BackButton fallbackRoute="/(tabs)/investor" />
+        <BackButton
+          fallbackRoute={onboardingComplete ? "/(tabs)/investor" : "/(auth)/choose-role"}
+          alwaysUseFallback={!onboardingComplete}
+        />
       </View>
       
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingTop: 60 }}>

@@ -64,7 +64,7 @@ export default function HalalFocusScreen() {
   return (
     <SafeAreaView className="flex-1 bg-emerald-50">
       <View className="absolute top-0 left-0 z-10 p-4">
-        <BackButton fallbackRoute="/(auth)/choose-role" />
+        <BackButton fallbackRoute="/(auth)/choose-role" alwaysUseFallback />
       </View>
 
       <ScrollView
