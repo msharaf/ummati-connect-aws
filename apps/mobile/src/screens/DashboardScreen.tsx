@@ -21,13 +21,13 @@ export function DashboardScreen() {
     }
   }, [setUser, user]);
 
-  const { data: recommendations } = trpc.matchmaking.getRecommendations.useQuery(
-    { userId: user?.id ?? demoUser.id, limit: 5 },
+  const { data: recommendationsData } = trpc.matchmaking.getRecommendations.useQuery(
+    undefined,
     { enabled: Boolean(user?.id), staleTime: 1000 * 60 }
   );
 
   const { data: matches } = trpc.matchmaking.getMatches.useQuery(
-    { userId: user?.id ?? demoUser.id },
+    { limit: 20 },
     { enabled: Boolean(user?.id), refetchInterval: 1000 * 30 }
   );
 
@@ -49,21 +49,17 @@ export function DashboardScreen() {
         <View className="mt-10">
           <Text className="text-lg font-semibold text-charcoal">Recommended</Text>
           <View className="mt-4 space-y-4">
-            {recommendations?.map((profile) => (
+            {recommendationsData?.recommendations?.map((profile, idx) => (
               <ProfileCard
-                key={profile.id}
-                type={profile.type === "INVESTOR" ? "INVESTOR" : "VISIONARY"}
-                name={profile.fullName}
-                location={[profile.city, profile.country].filter(Boolean).join(", ")}
-                industries={profile.industries}
-                barakahScore={
-                  profile.visionaryProfile?.barakahScore ??
-                  profile.investorProfile?.barakahScore ??
-                  undefined
-                }
+                key={(profile as { user?: { id?: string } }).user?.id ?? (profile as { startupName?: string }).startupName ?? String(idx)}
+                type="VISIONARY"
+                name={(profile as { fullName?: string }).fullName ?? (profile as { user?: { fullName?: string } }).user?.fullName ?? "Unknown"}
+                location={(profile as { location?: string }).location ?? ""}
+                industries={[(profile as { industry?: string }).industry, (profile as { sector?: string }).sector].filter((v): v is string => typeof v === "string" && v.length > 0)}
+                barakahScore={(profile as { barakahScore?: { score?: number } }).barakahScore?.score}
               />
             ))}
-            {!recommendations?.length && (
+            {!recommendationsData?.recommendations?.length && (
               <View className="rounded-3xl border border-dashed border-emerald-200 bg-white/70 p-6">
                 <Text className="text-sm text-charcoal/60">
                   No recommendations yet. Complete your profile to unlock tailored dealflow.
@@ -77,10 +73,10 @@ export function DashboardScreen() {
           <Text className="text-lg font-semibold text-charcoal">Matches</Text>
           <View className="mt-4 space-y-4">
             {matches?.map((match) => {
-              const counterpart =
-                match.investorId === (user?.id ?? demoUser.id)
-                  ? match.visionary
-                  : match.investor;
+              const other = match.otherUser;
+              const industries = other.visionaryProfile?.industry
+                ? [other.visionaryProfile.industry]
+                : other.investorProfile?.industriesInterestedIn ?? [];
               return (
                 <View
                   key={match.id}
@@ -90,10 +86,10 @@ export function DashboardScreen() {
                     Active Match
                   </Text>
                   <Text className="text-lg font-semibold text-charcoal">
-                    {counterpart.fullName}
+                    {other.fullName ?? other.email}
                   </Text>
                   <Text className="text-sm text-charcoal/70">
-                    {counterpart.industries?.join(" • ") ?? ""}
+                    {industries.join(" • ") ?? ""}
                   </Text>
                   <View className="flex-row gap-3">
                     <TouchableOpacity className="flex-1 rounded-full border border-emerald-200 px-4 py-3">

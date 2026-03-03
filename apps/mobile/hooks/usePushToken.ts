@@ -1,5 +1,5 @@
 import * as Notifications from "expo-notifications";
-import * as Constants from "expo-constants";
+import Constants from "expo-constants";
 import { useEffect } from "react";
 import { trpc } from "../src/lib/trpc";
 

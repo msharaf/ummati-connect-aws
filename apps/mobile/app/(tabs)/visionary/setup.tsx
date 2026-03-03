@@ -24,7 +24,7 @@ interface FormData {
   sector: string;
   startupStage: StartupStage;
   location: string;
-  fundingAsk: string;
+  fundingNeeded: string;
   websiteUrl: string;
   logoUrl: string;
   teamSize: string;
@@ -65,7 +65,7 @@ export default function VisionarySetupScreen() {
     sector: "",
     startupStage: "IDEA",
     location: "",
-    fundingAsk: "",
+    fundingNeeded: "",
     websiteUrl: "",
     logoUrl: "",
     teamSize: ""
@@ -83,9 +83,9 @@ export default function VisionarySetupScreen() {
         tagline: existingProfile.tagline || "",
         pitch: existingProfile.pitch || "",
         sector: existingProfile.sector || "",
-        startupStage: existingProfile.startupStage,
+        startupStage: existingProfile.startupStage ?? "IDEA",
         location: existingProfile.location || "",
-        fundingAsk: existingProfile.fundingAsk?.toString() || "",
+        fundingNeeded: existingProfile.fundingNeeded?.toString() ?? "",
         websiteUrl: existingProfile.websiteUrl || "",
         logoUrl: existingProfile.logoUrl || "",
         teamSize: existingProfile.teamSize?.toString() || ""
@@ -122,8 +122,8 @@ export default function VisionarySetupScreen() {
     if (formData.pitch.length > 2000) {
       newErrors.pitch = "Pitch must be less than 2000 characters";
     }
-    if (formData.fundingAsk && (isNaN(Number(formData.fundingAsk)) || Number(formData.fundingAsk) < 0)) {
-      newErrors.fundingAsk = "Funding ask must be a positive number";
+    if (formData.fundingNeeded && (isNaN(Number(formData.fundingNeeded)) || Number(formData.fundingNeeded) < 0 || Number(formData.fundingNeeded) > 1e12)) {
+      newErrors.fundingNeeded = "Funding needed must be a non-negative number (max 1 trillion)";
     }
     if (formData.teamSize && (isNaN(Number(formData.teamSize)) || Number(formData.teamSize) < 1 || Number(formData.teamSize) > 10000)) {
       newErrors.teamSize = "Team size must be between 1 and 10,000";
@@ -157,7 +157,7 @@ export default function VisionarySetupScreen() {
       sector: formData.sector.trim(),
       startupStage: formData.startupStage,
       location: formData.location.trim() || undefined,
-      fundingAsk: formData.fundingAsk ? Number(formData.fundingAsk) : undefined,
+      fundingNeeded: formData.fundingNeeded ? Number(formData.fundingNeeded) : undefined,
       websiteUrl: formData.websiteUrl.trim() || undefined,
       logoUrl: formData.logoUrl.trim() || undefined,
       teamSize: formData.teamSize ? Number(formData.teamSize) : undefined
@@ -345,6 +345,21 @@ export default function VisionarySetupScreen() {
             />
           </View>
 
+          {/* Funding Needed */}
+          <View className="mb-4">
+            <Text className="text-sm font-medium text-gray-700 mb-2">Funding Needed (USD)</Text>
+            <TextInput
+              value={formData.fundingNeeded}
+              onChangeText={(text) => handleChange("fundingNeeded", text)}
+              placeholder="e.g., 500000"
+              keyboardType="number-pad"
+              className="bg-gray-50 border border-emerald-200 rounded-lg px-4 py-3 text-gray-900"
+            />
+            {errors.fundingNeeded && (
+              <Text className="text-sm text-red-600 mt-1">{errors.fundingNeeded}</Text>
+            )}
+          </View>
+
           {/* Team Size */}
           <View className="mb-4">
             <Text className="text-sm font-medium text-gray-700 mb-2">Team Size</Text>
@@ -357,21 +372,6 @@ export default function VisionarySetupScreen() {
             />
             {errors.teamSize && (
               <Text className="text-sm text-red-600 mt-1">{errors.teamSize}</Text>
-            )}
-          </View>
-
-          {/* Funding Ask */}
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">Funding Ask (USD)</Text>
-            <TextInput
-              value={formData.fundingAsk}
-              onChangeText={(text) => handleChange("fundingAsk", text)}
-              placeholder="e.g., 500000"
-              keyboardType="number-pad"
-              className="bg-gray-50 border border-emerald-200 rounded-lg px-4 py-3 text-gray-900"
-            />
-            {errors.fundingAsk && (
-              <Text className="text-sm text-red-600 mt-1">{errors.fundingAsk}</Text>
             )}
           </View>
 

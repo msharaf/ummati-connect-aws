@@ -11,11 +11,12 @@ import {
 import type { StartupStage } from "@ummati/db/types";
 import { trpc } from "../../lib/trpc";
 import { Ionicons } from "@expo/vector-icons";
+import type { HalalCategoryFilter } from "./VisionaryList";
 
 interface Filters {
   sector: string | null;
   location: string | null;
-  halalCategory: string | null;
+  halalCategory: HalalCategoryFilter;
   minBarakah: number;
   stage: StartupStage | null;
   search: string | null;
@@ -246,7 +247,12 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
                       {filterOptions?.halalCategories.map((category) => (
                         <TouchableOpacity
                           key={category}
-                          onPress={() => handleFilterChange("halalCategory", category)}
+                          onPress={() =>
+                            handleFilterChange(
+                              "halalCategory",
+                              category as HalalCategoryFilter
+                            )
+                          }
                           className={`px-4 py-2 rounded-full ${
                             filters.halalCategory === category
                               ? "bg-emerald-600"

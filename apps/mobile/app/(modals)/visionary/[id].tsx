@@ -28,7 +28,7 @@ export default function VisionaryDetailModal() {
 
   const shortlist = trpc.investor.shortlistVisionary.useMutation({
     onSuccess: () => {
-      utils.investor.getShortlist.invalidate();
+      utils.investor.invalidate();
       utils.investor.getVisionaryDetails.invalidate({ visionaryId: id! });
       utils.investor.browseVisionaries.invalidate();
     },
@@ -99,7 +99,7 @@ export default function VisionaryDetailModal() {
               )}
             </View>
             <Text className="text-2xl font-bold text-gray-900 mb-1">
-              {profile.startupName}
+              {profile.visionaryProfile?.startupName}
             </Text>
             <Text className="text-gray-600">{displayName}</Text>
           </View>
@@ -107,24 +107,24 @@ export default function VisionaryDetailModal() {
           {/* Badges */}
           <View className="flex-row flex-wrap gap-2 mb-6 justify-center">
             <View className="bg-emerald-100 px-3 py-1.5 rounded-full">
-              <Text className="text-sm text-emerald-700 font-medium">{profile.sector}</Text>
+              <Text className="text-sm text-emerald-700 font-medium">{profile.visionaryProfile?.sector}</Text>
             </View>
             <View className="bg-emerald-50 px-3 py-1.5 rounded-full">
               <Text className="text-sm text-emerald-600 font-medium">
-                {profile.startupStage}
+                {profile.visionaryProfile?.startupStage}
               </Text>
             </View>
-            {profile.halalCategory && (
+            {profile.visionaryProfile?.halalCategory && (
               <View className="bg-yellow-50 px-3 py-1.5 rounded-full">
                 <Text className="text-sm text-yellow-700 font-medium">
-                  {profile.halalCategory}
+                  {profile.visionaryProfile?.halalCategory}
                 </Text>
               </View>
             )}
-            {profile.barakahScore && (
+            {profile.visionaryProfile?.barakahScore?.score != null && (
               <View className="bg-yellow-100 px-3 py-1.5 rounded-full">
                 <Text className="text-sm text-yellow-700 font-medium">
-                  Barakah: {profile.barakahScore}/10
+                  Barakah: {profile.visionaryProfile?.barakahScore?.score}/10
                 </Text>
               </View>
             )}
@@ -133,7 +133,7 @@ export default function VisionaryDetailModal() {
           {/* Description */}
           <View className="mb-6">
             <Text className="text-lg font-semibold text-gray-900 mb-2">About</Text>
-            <Text className="text-gray-700 leading-6">{profile.description}</Text>
+            <Text className="text-gray-700 leading-6">{profile.visionaryProfile?.description}</Text>
           </View>
 
           {/* Details Grid */}
@@ -144,23 +144,23 @@ export default function VisionaryDetailModal() {
                 <Text className="text-gray-900 font-medium">{profile.location}</Text>
               </View>
             )}
-            {profile.fundingAsk && (
+            {profile.visionaryProfile?.fundingNeeded != null && (
               <View className="mb-4">
                 <Text className="text-sm text-gray-600 mb-1">Funding Ask</Text>
                 <Text className="text-gray-900 font-medium">
-                  ${profile.fundingAsk.toLocaleString()}
+                  ${profile.visionaryProfile?.fundingNeeded.toLocaleString()}
                 </Text>
               </View>
             )}
-            {profile.websiteUrl && (
+            {profile.visionaryProfile?.websiteUrl && (
               <View>
                 <Text className="text-sm text-gray-600 mb-1">Website</Text>
                 <TouchableOpacity
-                  onPress={() => Linking.openURL(profile.websiteUrl!)}
+                  onPress={() => Linking.openURL(profile.visionaryProfile!.websiteUrl!)}
                   className="flex-row items-center"
                 >
                   <Text className="text-emerald-600 font-medium underline">
-                    {profile.websiteUrl}
+                    {profile.visionaryProfile?.websiteUrl}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -168,13 +168,13 @@ export default function VisionaryDetailModal() {
           </View>
 
           {/* Barakah Score Details */}
-          {profile.barakahScore && (
+          {profile.visionaryProfile?.barakahScore?.score != null && (
             <View className="bg-yellow-50 rounded-xl p-4 mb-6 border border-yellow-200">
               <Text className="text-lg font-semibold text-yellow-800 mb-2">
-                Barakah Score: {profile.barakahScore}/10
+                Barakah Score: {profile.visionaryProfile?.barakahScore?.score}/10
               </Text>
-              {profile.barakahNotes && (
-                <Text className="text-yellow-700 text-sm">{profile.barakahNotes}</Text>
+              {profile.visionaryProfile?.barakahScore?.notes && (
+                <Text className="text-yellow-700 text-sm">{profile.visionaryProfile?.barakahScore?.notes}</Text>
               )}
             </View>
           )}
@@ -187,19 +187,19 @@ export default function VisionaryDetailModal() {
           onPress={handleShortlist}
           disabled={isShortlisting}
           className={`mb-3 px-4 py-3 rounded-lg font-semibold ${
-            profile.isShortlisted
+            false
               ? "bg-yellow-100"
               : "bg-emerald-50"
           } disabled:opacity-50`}
         >
           <Text
             className={`text-center ${
-              profile.isShortlisted ? "text-yellow-700" : "text-emerald-700"
+              false ? "text-yellow-700" : "text-emerald-700"
             }`}
           >
             {isShortlisting
               ? "Loading..."
-              : profile.isShortlisted
+              : false
               ? "⭐ Shortlisted"
               : "⭐ Add to Shortlist"}
           </Text>

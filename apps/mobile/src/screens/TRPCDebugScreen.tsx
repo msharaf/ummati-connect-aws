@@ -3,7 +3,7 @@ import { trpc } from "../lib/trpc";
 import { getBaseUrl } from "../lib/trpc";
 
 export function TRPCDebugScreen() {
-  const { data, isLoading, error, refetch } = trpc.auth.getSessionUser.useQuery();
+  const { data, isLoading, error, refetch } = trpc.auth.me.useQuery();
 
   return (
     <ScrollView className="flex-1 bg-emerald-50" contentContainerStyle={{ padding: 16 }}>
@@ -54,7 +54,7 @@ export function TRPCDebugScreen() {
       <View className="rounded-lg border border-emerald-200 bg-white p-4">
         <Text className="mb-2 text-sm font-semibold text-emerald-700">Test Query:</Text>
         <Text className="mb-2 font-mono text-xs text-charcoal">
-          trpc.auth.getSessionUser.useQuery()
+          trpc.auth.me.useQuery()
         </Text>
         <Text className="text-xs text-charcoal/70">
           This is a public procedure that returns the current session user (null if not

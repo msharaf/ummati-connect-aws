@@ -42,7 +42,7 @@ import { LogoutButton } from "./LogoutButton";
 describe("LogoutButton", () => {
   beforeEach(() => {
     mockSignOut.mockClear();
-    vi.mocked(useClerk).mockReturnValue({ signOut: mockSignOut } as ReturnType<typeof useClerk>);
+    vi.mocked(useClerk).mockReturnValue({ signOut: mockSignOut } as unknown as ReturnType<typeof useClerk>);
   });
 
   it("renders Log Out text", () => {

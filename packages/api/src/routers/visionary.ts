@@ -284,7 +284,7 @@ export const visionaryRouter = router({
             where: { userId: user.id },
             data: {
               halalScore: result.halalScore,
-              halalCategory: result.halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
+              halalCategory: result.halalCategory,
               halalResponses: input.responses as Prisma.InputJsonValue,
               rejectionReason: result.rejectionReason,
               isFlagged: true
@@ -306,7 +306,7 @@ export const visionaryRouter = router({
         where: { userId: user.id },
         update: {
           halalScore: result.halalScore,
-          halalCategory: result.halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
+          halalCategory: result.halalCategory,
           halalResponses: input.responses as Prisma.InputJsonValue,
           ...(user.visionaryProfile ? {} : {
             fullName: user.fullName || user.name || "",
@@ -324,7 +324,7 @@ export const visionaryRouter = router({
           startupStage: StartupStage.IDEA,
           industry: "Temporary", // Will be updated later
           halalScore: result.halalScore,
-          halalCategory: result.halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
+          halalCategory: result.halalCategory,
           halalResponses: input.responses as Prisma.InputJsonValue
         }
       });
@@ -402,7 +402,7 @@ export const visionaryRouter = router({
           industry: input.industry,
           halalResponses: fullResponses as Prisma.InputJsonValue,
           riskCategory,
-          halalCategory: halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
+          halalCategory,
           halalScore,
           isFlagged,
           isApproved,
@@ -417,7 +417,7 @@ export const visionaryRouter = router({
           industry: input.industry,
           halalResponses: fullResponses as Prisma.InputJsonValue,
           riskCategory,
-          halalCategory: halalCategory as Prisma.VisionaryProfileUpdateInput["halalCategory"],
+          halalCategory,
           halalScore,
           isFlagged,
           isApproved,

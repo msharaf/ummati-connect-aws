@@ -69,9 +69,9 @@ export function MetricsGrid() {
       </View>
       <View style={{ flex: 1, minWidth: "45%" }}>
         <MetricCard
-          icon="💚"
-          label="Likes"
-          value={stats.totalLikes}
+          icon="⭐"
+          label="Shortlists"
+          value={stats.totalShortlists}
           color="text-emerald-600"
           bgColor=""
         />
@@ -88,9 +88,9 @@ export function MetricsGrid() {
       <View style={{ flex: 1, minWidth: "45%" }}>
         <MetricCard
           icon="💬"
-          label="Unread"
-          value={stats.unreadMessagesCount}
-          color={stats.unreadMessagesCount > 0 ? "text-red-600" : "text-gray-600"}
+          label="Messages"
+          value={stats.totalMessages}
+          color="text-emerald-600"
           bgColor=""
         />
       </View>

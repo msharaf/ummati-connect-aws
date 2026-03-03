@@ -3,7 +3,7 @@ import { trpc } from "../../src/lib/trpc";
 import { getBaseUrl } from "../../src/lib/trpc";
 
 export default function TRPCDebugScreen() {
-  const { data, isLoading, error, refetch } = trpc.healthcheck.useQuery();
+  const { data: meData, isLoading, error, refetch } = trpc.auth.me.useQuery();
 
   return (
     <ScrollView
@@ -50,15 +50,11 @@ export default function TRPCDebugScreen() {
             </Text>
           </View>
         )}
-        {data && !error && (
+        {meData !== undefined && !error && (
           <View className="mt-2">
             <Text className="mb-1 text-green-600">✓ tRPC connection successful!</Text>
             <Text className="mt-2 text-sm text-charcoal">
-              Status: {data.status}
-            </Text>
-            <Text className="text-sm text-charcoal">{data.message}</Text>
-            <Text className="mt-1 text-xs text-charcoal/60">
-              Timestamp: {data.timestamp}
+              {meData?.userId ? `User ID: ${meData.userId}` : meData?.message ?? "Connected"}
             </Text>
           </View>
         )}
@@ -69,7 +65,7 @@ export default function TRPCDebugScreen() {
           Response Data:
         </Text>
         <Text className="font-mono text-xs text-charcoal">
-          {JSON.stringify(data, null, 2)}
+          {JSON.stringify(meData, null, 2)}
         </Text>
       </View>
 
@@ -78,11 +74,11 @@ export default function TRPCDebugScreen() {
           Test Query:
         </Text>
         <Text className="mb-2 font-mono text-xs text-charcoal">
-          trpc.healthcheck.useQuery()
+          trpc.auth.me.useQuery()
         </Text>
         <Text className="text-xs text-charcoal/70">
-          This is a public procedure that returns the API health status and
-          confirms the mobile ↔ backend connection is working.
+          Returns the current session user (null if not authenticated).
+          Confirms the mobile ↔ backend connection is working.
         </Text>
       </View>
     </ScrollView>

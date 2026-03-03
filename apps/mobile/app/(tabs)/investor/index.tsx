@@ -4,12 +4,12 @@ import { useState } from "react";
 import { View, Text } from "react-native";
 import type { StartupStage } from "@ummati/db/types";
 import { FiltersPanel } from "../../../src/features/investor/FiltersPanel";
-import { VisionaryList } from "../../../src/features/investor/VisionaryList";
+import { VisionaryList, type HalalCategoryFilter } from "../../../src/features/investor/VisionaryList";
 
 interface Filters {
   sector: string | null;
   location: string | null;
-  halalCategory: string | null;
+  halalCategory: HalalCategoryFilter;
   minBarakah: number;
   stage: StartupStage | null;
   search: string | null;

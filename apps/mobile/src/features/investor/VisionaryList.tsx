@@ -5,11 +5,13 @@ import { useRouter } from "expo-router";
 import { trpc } from "../../lib/trpc";
 import type { StartupStage } from "@ummati/db/types";
 
+export type HalalCategoryFilter = "halal" | "grey" | "forbidden" | null;
+
 interface VisionaryListProps {
   filters: {
     sector: string | null;
     location: string | null;
-    halalCategory: string | null;
+    halalCategory: HalalCategoryFilter;
     minBarakah: number;
     stage: StartupStage | null;
     search: string | null;
@@ -29,7 +31,7 @@ export function VisionaryList({ filters }: VisionaryListProps) {
     {
       sector: filters.sector,
       location: filters.location,
-      halalCategory: filters.halalCategory,
+      halalCategory: filters.halalCategory ?? undefined,
       minBarakah: filters.minBarakah,
       stage: filters.stage,
       search: filters.search,

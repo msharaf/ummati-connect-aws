@@ -91,7 +91,7 @@ export const investorProfileRouter = router({
         where: { userId: user.id },
         update: {
           halalScore: result.halalScore,
-          halalCategory: result.halalCategory as Prisma.InvestorProfileUpdateInput["halalCategory"],
+          halalCategory: result.halalCategory,
           halalResponses: input.responses as Prisma.InputJsonValue,
           ...(user.investorProfile ? {} : {
             fullName: user.fullName || user.name || "",
@@ -103,7 +103,7 @@ export const investorProfileRouter = router({
           fullName: user.fullName || user.name || "",
           email: user.email,
           halalScore: result.halalScore,
-          halalCategory: result.halalCategory as Prisma.InvestorProfileUpdateInput["halalCategory"],
+          halalCategory: result.halalCategory,
           halalResponses: input.responses as Prisma.InputJsonValue
         }
       });
@@ -111,7 +111,7 @@ export const investorProfileRouter = router({
       return {
         success: true,
         rejected: false,
-        halalCategory: result.halalCategory,
+        halalCategory: result.halalCategory ?? null,
         halalScore: result.halalScore,
         profile
       };

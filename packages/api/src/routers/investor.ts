@@ -1,5 +1,5 @@
 import { router, protectedProcedure } from "../trpc";
-import { prisma, type Prisma } from "@ummati/db";
+import { prisma, type Prisma, HalalCategory, StartupStage } from "@ummati/db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
@@ -35,9 +35,9 @@ export const investorRouter = router({
       z.object({
         sector: z.string().nullable().optional(),
         location: z.string().nullable().optional(),
-        halalCategory: z.string().nullable().optional(),
+        halalCategory: z.nativeEnum(HalalCategory).nullable().optional(),
         minBarakah: z.number().optional(),
-        stage: z.string().nullable().optional(),
+        stage: z.nativeEnum(StartupStage).nullable().optional(),
         search: z.string().nullable().optional(),
         limit: z.number().min(1).max(100).default(20),
         cursor: z.string().optional()
@@ -65,7 +65,7 @@ export const investorRouter = router({
           ...(input.sector && { sector: input.sector }),
           ...(input.location && { location: input.location }),
           ...(input.halalCategory && { halalCategory: input.halalCategory }),
-          ...(input.stage && { startupStage: input.stage }),
+          ...(input.stage != null && { startupStage: input.stage }),
           ...(input.search && {
             OR: [
               { startupName: { contains: input.search, mode: "insensitive" } },
@@ -126,7 +126,7 @@ export const investorRouter = router({
     }),
 
   // Get filter options for browsing
-  getFilterOptions: protectedProcedure.query(async ({ _ctx }) => {
+  getFilterOptions: protectedProcedure.query(async ({ ctx }) => {
     const sectors = await prisma.visionaryProfile.findMany({
       select: { sector: true },
       distinct: ["sector"]
@@ -156,7 +156,7 @@ export const investorRouter = router({
   // Get detailed visionary profile
   getVisionaryDetails: protectedProcedure
     .input(z.object({ visionaryId: z.string() }))
-    .query(async ({ _ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       const visionary = await prisma.user.findUnique({
         where: { id: input.visionaryId },
         include: {
