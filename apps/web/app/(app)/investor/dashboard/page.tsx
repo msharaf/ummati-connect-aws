@@ -4,18 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { StartupStage } from "@ummati/db";
 import { trpc } from "../../../../src/lib/trpc";
-import { FiltersPanel } from "../../../../components/investor/FiltersPanel";
+import { FiltersPanel, type Filters } from "../../../../components/investor/FiltersPanel";
 import { VisionaryCard } from "../../../../components/investor/VisionaryCard";
 import { VisionaryDetails } from "../../../../components/investor/VisionaryDetails";
-
-interface Filters {
-  sector: string | null;
-  location: string | null;
-  halalCategory: string | null;
-  minBarakah: number;
-  stage: StartupStage | null;
-  search: string | null;
-}
 
 export default function InvestorDashboardPage() {
   const router = useRouter();
@@ -53,7 +44,7 @@ export default function InvestorDashboardPage() {
     {
       sector: filters.sector,
       location: filters.location,
-      halalCategory: filters.halalCategory,
+      halalCategory: filters.halalCategory as "halal" | "grey" | "forbidden" | null | undefined,
       minBarakah: filters.minBarakah,
       stage: filters.stage,
       search: filters.search,
@@ -141,13 +132,32 @@ export default function InvestorDashboardPage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {profiles.map((profile) => (
-                    <VisionaryCard
-                      key={profile.id}
-                      profile={profile}
-                      onSelect={setSelectedProfileId}
-                    />
-                  ))}
+                  {profiles.map((profile) => {
+                    const vp = profile.visionaryProfile;
+                    if (!vp) return null;
+                    return (
+                      <VisionaryCard
+                        key={profile.id}
+                        profile={{
+                          id: profile.id,
+                          userId: profile.id,
+                          name: profile.name ?? null,
+                          avatarUrl: profile.avatarUrl,
+                          startupName: vp.startupName,
+                          sector: vp.sector ?? "",
+                          stage: vp.startupStage,
+                          location: vp.location ?? profile.location ?? null,
+                          halalCategory: null,
+                          description: vp.description ?? "",
+                          fundingAsk: vp.fundingNeeded,
+                          websiteUrl: null,
+                          barakahScore: typeof vp.barakahScore === "number" ? vp.barakahScore : null,
+                          barakahNotes: null
+                        }}
+                        onSelect={setSelectedProfileId}
+                      />
+                    );
+                  })}
                 </div>
 
                 {/* Load More Trigger */}

@@ -73,11 +73,11 @@ export function MetricsGrid() {
         bgColor="bg-emerald-50"
       />
       <MetricCard
-        icon="💚"
-        label="Total Likes"
-        value={stats.totalLikes}
-        color="text-emerald-600"
-        bgColor="bg-emerald-50"
+        icon="⭐"
+        label="Shortlists"
+        value={stats.totalShortlists}
+        color="text-amber-600"
+        bgColor="bg-amber-50"
       />
       <MetricCard
         icon="✨"
@@ -88,10 +88,10 @@ export function MetricsGrid() {
       />
       <MetricCard
         icon="💬"
-        label="Unread Messages"
-        value={stats.unreadMessagesCount}
-        color={stats.unreadMessagesCount > 0 ? "text-red-600" : "text-gray-600"}
-        bgColor={stats.unreadMessagesCount > 0 ? "bg-red-50" : "bg-gray-50"}
+        label="Total Messages"
+        value={stats.totalMessages}
+        color="text-gray-600"
+        bgColor="bg-gray-50"
       />
     </div>
   );

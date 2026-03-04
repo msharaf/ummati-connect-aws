@@ -58,17 +58,17 @@ export default function ChatPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Get current user
-  const { data: currentUser } = trpc.user.getMe.useQuery();
+  const { data: currentUser } = trpc.user.me.useQuery();
 
   // Get match details
-  const { data: match } = trpc.match.getMatchById.useQuery(
+  const { data: match } = trpc.matchmaking.getMatch.useQuery(
     { matchId },
     { enabled: Boolean(matchId) }
   );
 
   // Get messages
   const { data: messages, isLoading: isLoadingMessages } =
-    trpc.message.getMessagesForMatch.useQuery(
+    trpc.messages.getMessagesForMatch.useQuery(
       { matchId },
       {
         enabled: Boolean(matchId),
@@ -79,19 +79,19 @@ export default function ChatPage() {
   const utils = trpc.useUtils();
 
   // Mark messages as read when page opens
-  const markAsRead = trpc.message.markAsRead.useMutation({
+  const markAsRead = trpc.messages.markAsRead.useMutation({
     onSuccess: () => {
-      utils.message.getMatchesWithLastMessage.invalidate();
+      utils.messages.getMatchesWithLastMessage.invalidate();
     }
   });
 
   // Send message mutation
-  const sendMessage = trpc.message.sendMessage.useMutation({
+  const sendMessage = trpc.messages.sendMessage.useMutation({
     onSuccess: () => {
       setMessageText("");
       // Invalidate and refetch messages
-      utils.message.getMessagesForMatch.invalidate({ matchId });
-      utils.message.getMatchesWithLastMessage.invalidate();
+      utils.messages.getMessagesForMatch.invalidate({ matchId });
+      utils.messages.getMatchesWithLastMessage.invalidate();
     }
   });
 
@@ -109,7 +109,7 @@ export default function ChatPage() {
       scrollContainerRef.current.scrollTop =
         scrollContainerRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages?.messages]);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,13 +121,10 @@ export default function ChatPage() {
     }
   };
 
-  const otherUser = match
-    ? match.userAId === currentUser?.id
-      ? match.userB
-      : match.userA
-    : null;
+  const otherUser = match?.otherUser ?? null;
+  const currentUserId = currentUser?.profile?.id;
 
-  const displayName = otherUser?.name || "Unknown User";
+  const displayName = otherUser?.fullName ?? "Unknown User";
   const roleLabel = otherUser?.role === "INVESTOR" ? "Investor" : "Visionary";
   const roleBadgeColor =
     otherUser?.role === "INVESTOR" ? "bg-emerald-600" : "bg-yellow-600";
@@ -151,7 +148,7 @@ export default function ChatPage() {
       {/* Header */}
       <div className="flex items-center gap-3 p-4 bg-white border border-emerald-200 rounded-xl shadow-sm">
         <BackButtonWeb fallbackRoute="/matches" />
-        <Avatar src={otherUser?.avatarUrl} name={otherUser?.name} size="md" />
+        <Avatar src={otherUser?.avatarUrl} name={displayName} size="md" />
         <div className="flex-1">
           <h1 className="text-xl font-semibold text-gray-900">{displayName}</h1>
           {otherUser?.role && (
@@ -173,13 +170,19 @@ export default function ChatPage() {
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-600">Loading messages...</p>
           </div>
-        ) : messages && messages.length > 0 ? (
+        ) : messages?.messages && messages.messages.length > 0 ? (
           <>
-            {messages.map((message) => (
+            {messages.messages.map((message) => (
               <MessageBubble
                 key={message.id}
-                message={message}
-                isOwnMessage={message.senderId === currentUser?.id}
+                message={{
+                  ...message,
+                  sender: {
+                    id: message.sender.id,
+                    name: message.sender.fullName ?? message.sender.email ?? null
+                  }
+                }}
+                isOwnMessage={message.senderId === currentUserId}
               />
             ))}
             <div ref={messagesEndRef} />

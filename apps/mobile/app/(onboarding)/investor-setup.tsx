@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { trpc } from "../../../src/lib/trpc";
-import { BackButton } from "../../../src/components/BackButton";
+import { trpc } from "../../src/lib/trpc";
+import { BackButton } from "../../src/components/BackButton";
 
 const HALAL_FOCUS_ERROR = "Complete HalalFocus verification first";
 
@@ -47,6 +47,13 @@ export default function InvestorSetupScreen() {
   const halalFocusVerified = userData?.halalFocusVerified ?? false;
   const onboardingComplete = userData?.onboardingComplete ?? false;
 
+  // Guard: if onboarding already complete, redirect to swipe (prevents bouncing)
+  useEffect(() => {
+    if (userData && onboardingComplete) {
+      router.replace("/(tabs)/swipe");
+    }
+  }, [userData, onboardingComplete, router]);
+
   const { data: existingProfile, isLoading: isLoadingProfile } =
     trpc.investorProfile.getMyInvestorProfile.useQuery();
 
@@ -80,14 +87,15 @@ export default function InvestorSetupScreen() {
       await utils.user.me.invalidate();
       router.replace("/(tabs)/swipe");
     },
-    onError: (error) => {
-      if (error.message?.includes(HALAL_FOCUS_ERROR)) {
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message?.includes(HALAL_FOCUS_ERROR)) {
         setErrors({
           minTicketSize: HALAL_FOCUS_ERROR
         });
-        router.replace("/(tabs)/investor/halalfocus");
+        router.replace("/(onboarding)/investor-halalfocus");
       } else {
-        setErrors({ minTicketSize: error.message });
+        setErrors({ minTicketSize: message });
       }
     }
   });
@@ -152,6 +160,16 @@ export default function InvestorSetupScreen() {
     handleChange("preferredSectors", updated);
   };
 
+  // Guard: redirect if onboarding already complete (prevents bouncing)
+  if (userData && onboardingComplete) {
+    return (
+      <View className="flex-1 bg-emerald-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#059669" />
+        <Text className="text-gray-600 mt-4">Redirecting...</Text>
+      </View>
+    );
+  }
+
   if (isLoadingProfile) {
     return (
       <View className="flex-1 bg-emerald-50 items-center justify-center">
@@ -173,7 +191,7 @@ export default function InvestorSetupScreen() {
           investment profile.
         </Text>
         <TouchableOpacity
-          onPress={() => router.replace("/(tabs)/investor/halalfocus")}
+          onPress={() => router.replace("/(onboarding)/investor-halalfocus")}
           className="bg-emerald-600 rounded-lg py-4 px-6"
         >
           <Text className="text-white font-semibold text-center text-lg">
@@ -353,4 +371,3 @@ export default function InvestorSetupScreen() {
     </SafeAreaView>
   );
 }
-

@@ -5,8 +5,6 @@ import { trpc } from "../../../src/lib/trpc";
 import { formatDistanceToNow } from "date-fns";
 import { ActivityIndicator } from "react-native";
 import { Avatar } from "../../../components/Avatar";
-import { InvestorOnboardingGuard } from "../../../src/components/InvestorOnboardingGuard";
-
 interface MatchListItemProps {
   match: {
     id: string;
@@ -65,11 +63,7 @@ function MatchListItem({ match, onPress }: MatchListItemProps) {
 }
 
 export default function MatchesScreen() {
-  return (
-    <InvestorOnboardingGuard>
-      <MatchesScreenContent />
-    </InvestorOnboardingGuard>
-  );
+  return <MatchesScreenContent />;
 }
 
 function MatchesScreenContent() {

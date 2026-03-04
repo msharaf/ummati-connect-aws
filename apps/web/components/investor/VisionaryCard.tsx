@@ -31,7 +31,6 @@ export function VisionaryCard({ profile, onSelect }: VisionaryCardProps) {
 
   const shortlist = trpc.investor.shortlistVisionary.useMutation({
     onSuccess: () => {
-      utils.investor.getShortlist.invalidate();
       utils.investor.browseVisionaries.invalidate();
     },
     onSettled: () => {

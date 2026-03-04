@@ -99,8 +99,9 @@ export default function VisionarySetupScreen() {
       utils.visionary.getMyProfile.invalidate();
       router.push("/(tabs)/visionary/dashboard");
     },
-    onError: (error) => {
-      setErrors({ startupName: error.message });
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      setErrors({ startupName: message });
     }
   });
 

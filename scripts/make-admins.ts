@@ -3,7 +3,7 @@
  * Run with: pnpm tsx scripts/make-admins.ts
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@ummati/db";
 
 const prisma = new PrismaClient();
 
@@ -47,7 +47,7 @@ async function makeAdmins() {
   });
 
   console.log("Current admin status:");
-  admins.forEach(user => {
+  admins.forEach((user: { email: string; isAdmin: boolean; name: string | null }) => {
     const status = user.isAdmin ? "✅ ADMIN" : "❌ Not admin";
     console.log(`  ${user.email} (${user.name || "No name"}) - ${status}`);
   });

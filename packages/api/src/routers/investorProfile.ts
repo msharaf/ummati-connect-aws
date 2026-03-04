@@ -173,17 +173,15 @@ export const investorProfileRouter = router({
         });
       }
 
-      // Determine if profile is complete (all required fields filled)
-      const profileComplete = !!(
-        (input.fullName || user.investorProfile?.fullName) &&
-        (input.minTicketSize !== undefined || user.investorProfile?.minTicketSize !== null) &&
-        (input.maxTicketSize !== undefined || user.investorProfile?.maxTicketSize !== null) &&
-        (input.location !== undefined || user.investorProfile?.location) &&
-        (input.bio !== undefined || user.investorProfile?.bio)
-      );
+      // V1 completion criteria: halalFocus + minTicketSize + at least 1 preferredSector.
+      // Does NOT require maxTicketSize, location, bio, thesis, or geoFocus.
+      const minTicketSizePresent =
+        (input.minTicketSize !== undefined ? input.minTicketSize : user.investorProfile?.minTicketSize) != null;
+      const preferredSectorsPresent =
+        (input.preferredSectors ?? user.investorProfile?.preferredSectors ?? []).length > 0;
+      const profileComplete = hasHalalFocus && minTicketSizePresent && preferredSectorsPresent;
 
-      // Onboarding is complete when profile is complete
-      const onboardingComplete = profileComplete && hasHalalFocus;
+      const onboardingComplete = profileComplete;
 
       const profile = await prisma.investorProfile.upsert({
         where: { userId: user.id },

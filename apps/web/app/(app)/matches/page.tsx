@@ -67,7 +67,7 @@ function MatchCard({ match, onClick }: MatchCardProps) {
 
 export default function MatchesPage() {
   const router = useRouter();
-  const { data: matches, isLoading } = trpc.match.getMyMatches.useQuery();
+  const { data: matches, isLoading } = trpc.matchmaking.getMatches.useQuery();
 
   if (isLoading) {
     return (
@@ -117,7 +117,17 @@ export default function MatchesPage() {
           {matches.map((match) => (
             <MatchCard
               key={match.id}
-              match={match}
+              match={{
+                id: match.id,
+                otherUser: {
+                  id: match.otherUser.id,
+                  name: match.otherUser.fullName ?? null,
+                  avatarUrl: match.otherUser.avatarUrl ?? null,
+                  role: match.otherUser.role ?? null
+                },
+                lastMessage: match.lastMessage?.text ?? null,
+                lastMessageAt: match.lastMessage?.createdAt ?? match.createdAt
+              }}
               onClick={() => router.push(`/messages/${match.id}`)}
             />
           ))}

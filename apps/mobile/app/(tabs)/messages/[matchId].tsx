@@ -15,7 +15,6 @@ import { format } from "date-fns";
 import { trpc } from "../../../src/lib/trpc";
 import { Avatar } from "../../../components/Avatar";
 import { BackButton } from "../../../src/components/BackButton";
-import { InvestorOnboardingGuard } from "../../../src/components/InvestorOnboardingGuard";
 
 interface MessageBubbleProps {
   message: {
@@ -65,11 +64,7 @@ function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
 }
 
 export default function ChatScreen() {
-  return (
-    <InvestorOnboardingGuard>
-      <ChatScreenContent />
-    </InvestorOnboardingGuard>
-  );
+  return <ChatScreenContent />;
 }
 
 function ChatScreenContent() {

@@ -3,7 +3,7 @@
 import { trpc } from "../../../src/lib/trpc";
 
 export default function TRPCDebugPage() {
-  const { data, isLoading, error } = trpc.auth.getSessionUser.useQuery();
+  const { data, isLoading, error } = trpc.user.me.useQuery();
 
   return (
     <div className="min-h-screen p-8">
@@ -40,7 +40,7 @@ export default function TRPCDebugPage() {
           <div>
             <h2 className="mb-2 text-lg font-semibold">Test Query:</h2>
             <p className="text-sm text-gray-600">
-              <code>trpc.auth.getSessionUser.useQuery()</code>
+              <code>trpc.user.me.useQuery()</code>
             </p>
             <p className="mt-2 text-sm text-gray-600">
               This is a public procedure that returns the current session user

@@ -4,10 +4,12 @@ import { useState } from "react";
 import { StartupStage } from "@ummati/db";
 import { trpc } from "../../src/lib/trpc";
 
-interface Filters {
+export type HalalCategoryFilter = "halal" | "grey" | "forbidden" | null;
+
+export interface Filters {
   sector: string | null;
   location: string | null;
-  halalCategory: string | null;
+  halalCategory: HalalCategoryFilter;
   minBarakah: number;
   stage: StartupStage | null;
   search: string | null;
@@ -78,8 +80,8 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
         >
           <option value="">All Sectors</option>
           {filterOptions?.sectors.map((sector) => (
-            <option key={sector} value={sector}>
-              {sector}
+            <option key={sector ?? ""} value={sector ?? ""}>
+              {sector ?? "Unknown"}
             </option>
           ))}
         </select>
@@ -114,8 +116,8 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
         >
           <option value="">All Locations</option>
           {filterOptions?.locations.map((location) => (
-            <option key={location} value={location}>
-              {location}
+            <option key={location ?? ""} value={location ?? ""}>
+              {location ?? "Unknown"}
             </option>
           ))}
         </select>
@@ -128,7 +130,10 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
         </label>
         <select
           value={filters.halalCategory || ""}
-          onChange={(e) => handleFilterChange("halalCategory", e.target.value || null)}
+          onChange={(e) => {
+            const v = e.target.value || null;
+            handleFilterChange("halalCategory", v as HalalCategoryFilter);
+          }}
           className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
         >
           <option value="">All Categories</option>

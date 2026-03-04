@@ -29,7 +29,7 @@ export default function ChooseRoleScreen() {
   );
 
   const setRole = trpc.user.setRole.useMutation({
-    onSuccess: async (data) => {
+    onSuccess: async (data: { role: string | null }) => {
       // Only invalidate user.me (not user.getMe) to avoid duplicate refetches
       // Wait for the query to refetch before navigating to avoid race condition
       await utils.user.me.invalidate();
@@ -39,16 +39,18 @@ export default function ChooseRoleScreen() {
         console.log("[ChooseRole] Role set successfully, navigating to:", data.role);
       }
 
-      if (data.role === "INVESTOR") {
-        router.replace("/(tabs)/investor");
-      } else if (data.role === "VISIONARY") {
-        router.replace("/(tabs)/visionary/dashboard");
+      if (data.role === "INVESTOR" || data.role === "VISIONARY") {
+        if (data.role === "INVESTOR") {
+          router.replace("/(tabs)/investor");
+        } else {
+          router.replace("/(tabs)/visionary/dashboard");
+        }
       }
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       const is401 = (error as { data?: { code?: string } }).data?.code === "UNAUTHORIZED";
       if (!is401) {
-        Alert.alert("Error", `Failed to set role: ${error.message}`);
+        Alert.alert("Error", `Failed to set role: ${(error as Error).message}`);
       }
     },
     onSettled: () => {

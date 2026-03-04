@@ -5,9 +5,9 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 
 interface ActivityItemProps {
-  type: "profile_view" | "swipe_received" | "match_created" | "message_received";
+  type: "profile_view" | "shortlist" | "swipe_received" | "match_created" | "message_received";
   timestamp: Date;
-  data: any;
+  data: { investor?: { name?: string | null }; matchId?: string; text?: string };
 }
 
 function ActivityItem({ type, timestamp, data }: ActivityItemProps) {
@@ -16,7 +16,7 @@ function ActivityItem({ type, timestamp, data }: ActivityItemProps) {
       case "profile_view":
         return {
           icon: "👁️",
-          text: `${data.investor.name || "An investor"} viewed your profile`,
+          text: `${data.investor?.name || "An investor"} viewed your profile`,
           color: "text-blue-600",
           bgColor: "bg-blue-50",
           borderColor: "border-blue-200"
@@ -24,7 +24,7 @@ function ActivityItem({ type, timestamp, data }: ActivityItemProps) {
       case "swipe_received":
         return {
           icon: "💚",
-          text: `${data.investor.name || "An investor"} liked your profile`,
+          text: `${data.investor?.name || "An investor"} liked your profile`,
           color: "text-emerald-600",
           bgColor: "bg-emerald-50",
           borderColor: "border-emerald-200"
@@ -32,16 +32,24 @@ function ActivityItem({ type, timestamp, data }: ActivityItemProps) {
       case "match_created":
         return {
           icon: "✨",
-          text: `New match with ${data.investor.name || "an investor"}!`,
+          text: `New match with ${data.investor?.name || "an investor"}!`,
           color: "text-amber-600",
           bgColor: "bg-amber-50",
           borderColor: "border-amber-200",
           link: `/messages?matchId=${data.matchId}`
         };
+      case "shortlist":
+        return {
+          icon: "⭐",
+          text: `${data.investor?.name || "An investor"} added you to their shortlist`,
+          color: "text-amber-600",
+          bgColor: "bg-amber-50",
+          borderColor: "border-amber-200"
+        };
       case "message_received":
         return {
           icon: "💬",
-          text: `New message from ${data.investor.name || "an investor"}`,
+          text: `New message from ${data.investor?.name || "an investor"}`,
           color: "text-purple-600",
           bgColor: "bg-purple-50",
           borderColor: "border-purple-200",
@@ -155,10 +163,10 @@ export function ActivityFeed() {
       <div className="space-y-3">
         {activities.map((activity, index) => (
           <ActivityItem
-            key={`${activity.type}-${activity.timestamp.getTime()}-${index}`}
+            key={`${activity.id}-${index}`}
             type={activity.type}
-            timestamp={activity.timestamp}
-            data={activity.data}
+            timestamp={activity.createdAt}
+            data={{ investor: activity.investor }}
           />
         ))}
       </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,12 +9,23 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { trpc } from "../../../src/lib/trpc";
-import { BackButton } from "../../../src/components/BackButton";
+import { trpc } from "../../src/lib/trpc";
+import { BackButton } from "../../src/components/BackButton";
 
 export default function HalalFocusScreen() {
   const router = useRouter();
   const utils = trpc.useUtils();
+
+  const { data: userData } = trpc.user.me.useQuery(undefined, { retry: false });
+  const halalFocusVerified = userData?.halalFocusVerified ?? false;
+  const onboardingComplete = userData?.onboardingComplete ?? false;
+
+  // Guard: if onboarding already complete, redirect to swipe (prevents bouncing)
+  useEffect(() => {
+    if (userData && halalFocusVerified && onboardingComplete) {
+      router.replace("/(tabs)/swipe");
+    }
+  }, [userData, halalFocusVerified, onboardingComplete, router]);
 
   const { data: questionnaire, isLoading: isLoadingQuestionnaire } =
     trpc.investorProfile.getHalalFocusQuestionnaire.useQuery();
@@ -23,15 +34,15 @@ export default function HalalFocusScreen() {
   const [additionalNotes, setAdditionalNotes] = useState("");
 
   const submitHalalFocus = trpc.investorProfile.submitHalalFocus.useMutation({
-    onSuccess: async (result) => {
+    onSuccess: async (result: { rejected?: boolean }) => {
       if (result.rejected) {
         return; // Handled below
       }
       await utils.user.me.invalidate();
       await utils.investorProfile.getMyInvestorProfile.invalidate();
-      router.replace("/(tabs)/investor/setup");
+      router.replace("/(onboarding)/investor-setup");
     },
-    onError: (error) => {
+    onError: (_error: unknown) => {
       // Error shown by mutation state
     }
   });
@@ -48,6 +59,16 @@ export default function HalalFocusScreen() {
   const toggleResponse = (id: string, value: boolean) => {
     setResponses((prev) => ({ ...prev, [id]: value }));
   };
+
+  // Guard: redirect if onboarding already complete (prevents bouncing)
+  if (userData && halalFocusVerified && onboardingComplete) {
+    return (
+      <View className="flex-1 bg-emerald-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#059669" />
+        <Text className="text-gray-600 mt-4">Redirecting...</Text>
+      </View>
+    );
+  }
 
   if (isLoadingQuestionnaire) {
     return (
@@ -99,7 +120,7 @@ export default function HalalFocusScreen() {
           <Text className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-emerald-200">
             Industry & Business Verification
           </Text>
-          {questions.map((q) => (
+          {questions.map((q: { id: string; label: string }) => (
             <View
               key={q.id}
               className="py-3 border-b border-gray-100 last:border-b-0"

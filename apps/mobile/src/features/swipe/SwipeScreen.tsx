@@ -27,7 +27,7 @@ export function SwipeScreen() {
   );
 
   const swipeMutation = trpc.matchmaking.swipe.useMutation({
-    onSuccess: (result) => {
+    onSuccess: (result: { matchCreated?: boolean }) => {
       if (result.matchCreated) {
         // Show match modal
         const swipedUser = profiles[0];
@@ -39,7 +39,7 @@ export function SwipeScreen() {
       // Remove the swiped card from the stack
       setProfiles((prev) => prev.slice(1));
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       console.error("Swipe error:", error);
       // Still remove the card on error to prevent UI blocking
       setProfiles((prev) => prev.slice(1));

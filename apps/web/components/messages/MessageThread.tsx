@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { trpc } from "../../src/lib/trpc";
@@ -11,16 +10,15 @@ interface MessageThreadProps {
 }
 
 export function MessageThread({ matchId }: MessageThreadProps) {
-  const { user: clerkUser } = useUser();
   const [messageText, setMessageText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Get current user from tRPC
-  const { data: currentUser } = trpc.auth.getCurrentUser.useQuery();
+  const { data: currentUser } = trpc.user.me.useQuery();
 
   // Get match details
-  const { data: match } = trpc.match.getMatchById.useQuery(
+  const { data: match } = trpc.matchmaking.getMatch.useQuery(
     { matchId },
     { enabled: Boolean(matchId) }
   );
@@ -31,7 +29,7 @@ export function MessageThread({ matchId }: MessageThreadProps) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = trpc.message.getMessages.useInfiniteQuery(
+  } = trpc.messages.getMessages.useInfiniteQuery(
     { matchId, limit: 30 },
     {
       enabled: Boolean(matchId),
@@ -43,19 +41,19 @@ export function MessageThread({ matchId }: MessageThreadProps) {
   const utils = trpc.useUtils();
 
   // Mark messages as read when thread opens
-  const markAsRead = trpc.message.markAsRead.useMutation({
+  const markAsRead = trpc.messages.markAsRead.useMutation({
     onSuccess: () => {
-      utils.message.getMatchesWithLastMessage.invalidate();
+      utils.messages.getMatchesWithLastMessage.invalidate();
     }
   });
 
   // Send message mutation
-  const sendMessage = trpc.message.sendMessage.useMutation({
+  const sendMessage = trpc.messages.sendMessage.useMutation({
     onSuccess: () => {
       setMessageText("");
       // Invalidate and refetch messages
-      utils.message.getMessages.invalidate({ matchId });
-      utils.message.getMatchesWithLastMessage.invalidate();
+      utils.messages.getMessages.invalidate({ matchId });
+      utils.messages.getMatchesWithLastMessage.invalidate();
     }
   });
 
@@ -85,13 +83,10 @@ export function MessageThread({ matchId }: MessageThreadProps) {
   };
 
   const messages = data?.pages.flatMap((page) => page.messages) ?? [];
-  const otherUser = match
-    ? match.userAId === currentUser?.id
-      ? match.userB
-      : match.userA
-    : null;
+  const otherUser = match?.otherUser ?? null;
+  const currentUserId = currentUser?.profile?.id;
 
-  const displayName = otherUser?.name || "Unknown User";
+  const displayName = otherUser?.fullName ?? "Unknown User";
 
   return (
     <div className="flex flex-col h-full">
@@ -148,8 +143,11 @@ export function MessageThread({ matchId }: MessageThreadProps) {
           </div>
         ) : (
           messages.map((message) => {
-            const isOwnMessage = message.senderId === currentUser?.id;
-            const senderName = message.sender.name || "Unknown";
+            const isOwnMessage = message.senderId === currentUserId;
+            const senderName =
+              (message.sender as { fullName?: string | null; name?: string | null }).fullName ||
+              (message.sender as { fullName?: string | null; name?: string | null }).name ||
+              "Unknown";
 
             return (
               <div

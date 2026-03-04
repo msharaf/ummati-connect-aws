@@ -219,7 +219,7 @@ describe("userRouter", () => {
         role: "INVESTOR" as const
       };
       const origNodeEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "development";
+      (process.env as { NODE_ENV?: string }).NODE_ENV = "development";
 
       vi.mocked(prisma.user.findUnique)
         .mockResolvedValueOnce(null)
@@ -242,7 +242,7 @@ describe("userRouter", () => {
       });
       expect(result.role).toBe("INVESTOR");
 
-      process.env.NODE_ENV = origNodeEnv;
+      (process.env as { NODE_ENV?: string }).NODE_ENV = origNodeEnv;
     });
 
     it("should throw CONFLICT when email exists and different clerkId (not dev)", async () => {
@@ -258,7 +258,7 @@ describe("userRouter", () => {
         visionaryProfile: null
       };
       const origNodeEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "production";
+      (process.env as { NODE_ENV?: string }).NODE_ENV = "production";
 
       vi.mocked(prisma.user.findUnique)
         .mockResolvedValueOnce(null)
@@ -270,7 +270,7 @@ describe("userRouter", () => {
         "An account with this email already exists"
       );
 
-      process.env.NODE_ENV = origNodeEnv;
+      (process.env as { NODE_ENV?: string }).NODE_ENV = origNodeEnv;
     });
 
     it("should succeed on P2002 email conflict via find-by-email linking (dev)", async () => {
@@ -295,7 +295,7 @@ describe("userRouter", () => {
       (prismaError as { code?: string; meta?: { target?: string[] } }).meta = { target: ["email"] };
 
       const origNodeEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "development";
+      (process.env as { NODE_ENV?: string }).NODE_ENV = "development";
 
       vi.mocked(prisma.user.findUnique)
         .mockResolvedValueOnce(null)
@@ -316,7 +316,7 @@ describe("userRouter", () => {
       });
       expect(result.role).toBe("INVESTOR");
 
-      process.env.NODE_ENV = origNodeEnv;
+      (process.env as { NODE_ENV?: string }).NODE_ENV = origNodeEnv;
     });
 
     it("should throw error when user does not exist and Clerk fails", async () => {

@@ -1,12 +1,7 @@
 import { View, Text } from "react-native";
-import { InvestorOnboardingGuard } from "../../../src/components/InvestorOnboardingGuard";
 
 export default function ProfileTab() {
-  return (
-    <InvestorOnboardingGuard>
-      <ProfileTabContent />
-    </InvestorOnboardingGuard>
-  );
+  return <ProfileTabContent />;
 }
 
 function ProfileTabContent() {

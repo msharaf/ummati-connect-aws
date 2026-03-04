@@ -12,7 +12,7 @@ interface FormData {
   sector: string;
   startupStage: StartupStage;
   location: string;
-  fundingAsk: string;
+  fundingNeeded: string;
   websiteUrl: string;
   barakahScore: number;
 }
@@ -48,7 +48,7 @@ export function SetupForm() {
     sector: "",
     startupStage: "IDEA",
     location: "",
-    fundingAsk: "",
+    fundingNeeded: "",
     websiteUrl: "",
     barakahScore: 5
   });
@@ -63,9 +63,9 @@ export function SetupForm() {
         description: existingProfile.description || "",
         pitch: existingProfile.pitch || "",
         sector: existingProfile.sector || "",
-        startupStage: existingProfile.startupStage,
+        startupStage: existingProfile.startupStage ?? "IDEA",
         location: existingProfile.location || "",
-        fundingAsk: existingProfile.fundingAsk?.toString() || "",
+        fundingNeeded: existingProfile.fundingNeeded?.toString() || "",
         websiteUrl: existingProfile.websiteUrl || "",
         barakahScore: existingProfile.barakahScore || 5
       });
@@ -104,8 +104,8 @@ export function SetupForm() {
     if (formData.pitch.length > 2000) {
       newErrors.pitch = "Pitch must be less than 2000 characters";
     }
-    if (formData.fundingAsk && (isNaN(Number(formData.fundingAsk)) || Number(formData.fundingAsk) < 0)) {
-      newErrors.fundingAsk = "Funding ask must be a positive number";
+    if (formData.fundingNeeded && (isNaN(Number(formData.fundingNeeded)) || Number(formData.fundingNeeded) < 0)) {
+      newErrors.fundingNeeded = "Funding ask must be a positive number";
     }
     if (formData.websiteUrl && formData.websiteUrl.trim() !== "") {
       try {
@@ -130,9 +130,8 @@ export function SetupForm() {
       sector: formData.sector.trim(),
       startupStage: formData.startupStage,
       location: formData.location.trim() || undefined,
-      fundingAsk: formData.fundingAsk ? Number(formData.fundingAsk) : undefined,
-      websiteUrl: formData.websiteUrl.trim() || undefined,
-      barakahScore: formData.barakahScore || undefined
+      fundingNeeded: formData.fundingNeeded ? Number(formData.fundingNeeded) : undefined,
+      websiteUrl: formData.websiteUrl.trim() || undefined
     });
   };
 
@@ -304,21 +303,21 @@ export function SetupForm() {
             </label>
             <input
               type="number"
-              value={formData.fundingAsk}
-              onChange={(e) => handleChange("fundingAsk", e.target.value)}
+              value={formData.fundingNeeded}
+              onChange={(e) => handleChange("fundingNeeded", e.target.value)}
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
-                errors.fundingAsk ? "border-red-300" : "border-emerald-200"
+                errors.fundingNeeded ? "border-red-300" : "border-emerald-200"
               }`}
               placeholder="e.g., 100000"
               min={0}
               max={100000000}
             />
-            {errors.fundingAsk && (
-              <p className="mt-1 text-sm text-red-600">{errors.fundingAsk}</p>
+            {errors.fundingNeeded && (
+              <p className="mt-1 text-sm text-red-600">{errors.fundingNeeded}</p>
             )}
-            {formData.fundingAsk && (
+            {formData.fundingNeeded && (
               <p className="mt-1 text-xs text-charcoal/60">
-                ${Number(formData.fundingAsk).toLocaleString()}
+                ${Number(formData.fundingNeeded).toLocaleString()}
               </p>
             )}
           </div>

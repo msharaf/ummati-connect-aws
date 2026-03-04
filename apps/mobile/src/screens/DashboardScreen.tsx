@@ -49,7 +49,7 @@ export function DashboardScreen() {
         <View className="mt-10">
           <Text className="text-lg font-semibold text-charcoal">Recommended</Text>
           <View className="mt-4 space-y-4">
-            {recommendationsData?.recommendations?.map((profile, idx) => (
+            {recommendationsData?.recommendations?.map((profile: Record<string, unknown>, idx: number) => (
               <ProfileCard
                 key={(profile as { user?: { id?: string } }).user?.id ?? (profile as { startupName?: string }).startupName ?? String(idx)}
                 type="VISIONARY"
@@ -73,7 +73,12 @@ export function DashboardScreen() {
           <Text className="text-lg font-semibold text-charcoal">Matches</Text>
           <View className="mt-4 space-y-4">
             {matches?.map((match) => {
-              const other = match.otherUser;
+              const other = match.otherUser as {
+                fullName?: string | null;
+                email?: string | null;
+                visionaryProfile?: { industry?: string } | null;
+                investorProfile?: { industriesInterestedIn?: string[] } | null;
+              };
               const industries = other.visionaryProfile?.industry
                 ? [other.visionaryProfile.industry]
                 : other.investorProfile?.industriesInterestedIn ?? [];
@@ -86,7 +91,7 @@ export function DashboardScreen() {
                     Active Match
                   </Text>
                   <Text className="text-lg font-semibold text-charcoal">
-                    {other.fullName ?? other.email}
+                    {other.fullName ?? other.email ?? ""}
                   </Text>
                   <Text className="text-sm text-charcoal/70">
                     {industries.join(" • ") ?? ""}

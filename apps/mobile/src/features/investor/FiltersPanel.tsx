@@ -118,7 +118,7 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
                           All
                         </Text>
                       </TouchableOpacity>
-                      {filterOptions?.sectors.map((sector) => (
+                      {filterOptions?.sectors.map((sector) => sector == null ? null : (
                         <TouchableOpacity
                           key={sector}
                           onPress={() => handleFilterChange("sector", sector)}
@@ -160,7 +160,7 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
                           All
                         </Text>
                       </TouchableOpacity>
-                      {filterOptions?.stages.map((stage) => (
+                      {filterOptions?.stages.map((stage: string) => (
                         <TouchableOpacity
                           key={stage}
                           onPress={() => handleFilterChange("stage", stage as StartupStage)}
@@ -200,7 +200,7 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
                           All
                         </Text>
                       </TouchableOpacity>
-                      {filterOptions?.locations.map((location) => (
+                      {filterOptions?.locations.map((location) => location == null ? null : (
                         <TouchableOpacity
                           key={location}
                           onPress={() => handleFilterChange("location", location)}
@@ -244,7 +244,7 @@ export function FiltersPanel({ filters, onFiltersChange }: FiltersPanelProps) {
                           All
                         </Text>
                       </TouchableOpacity>
-                      {filterOptions?.halalCategories.map((category) => (
+                      {filterOptions?.halalCategories.map((category: string) => (
                         <TouchableOpacity
                           key={category}
                           onPress={() =>

@@ -14,7 +14,7 @@ function MessagesContent() {
     searchParams.get("match") || null
   );
 
-  const { data: matches, isLoading } = trpc.message.getMatchesWithLastMessage.useQuery(
+  const { data: matches, isLoading } = trpc.messages.getMatchesWithLastMessage.useQuery(
     undefined,
     {
       refetchInterval: 5000 // Poll every 5 seconds for "real-time" updates

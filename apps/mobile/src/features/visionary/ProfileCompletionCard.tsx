@@ -88,7 +88,7 @@ export function ProfileCompletionCard() {
             Complete these fields to improve your profile visibility:
           </Text>
           <View className="mb-4">
-            {missingFields.slice(0, 3).map((field, index) => (
+            {missingFields.slice(0, 3).map((field: string, index: number) => (
               <View
                 key={field}
                 className={`flex-row items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200 ${

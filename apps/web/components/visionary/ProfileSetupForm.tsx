@@ -13,7 +13,7 @@ interface FormData {
   sector: string;
   startupStage: StartupStage;
   location: string;
-  fundingAsk: string;
+  fundingNeeded: string;
   websiteUrl: string;
   logoUrl: string;
   teamSize: string;
@@ -54,7 +54,7 @@ export function ProfileSetupForm() {
     sector: "",
     startupStage: "IDEA",
     location: "",
-    fundingAsk: "",
+    fundingNeeded: "",
     websiteUrl: "",
     logoUrl: "",
     teamSize: ""
@@ -70,9 +70,9 @@ export function ProfileSetupForm() {
         tagline: existingProfile.tagline || "",
         pitch: existingProfile.pitch || "",
         sector: existingProfile.sector || "",
-        startupStage: existingProfile.startupStage,
+        startupStage: existingProfile.startupStage ?? "IDEA",
         location: existingProfile.location || "",
-        fundingAsk: existingProfile.fundingAsk?.toString() || "",
+        fundingNeeded: existingProfile.fundingNeeded?.toString() || "",
         websiteUrl: existingProfile.websiteUrl || "",
         logoUrl: existingProfile.logoUrl || "",
         teamSize: existingProfile.teamSize?.toString() || ""
@@ -112,8 +112,8 @@ export function ProfileSetupForm() {
     if (formData.pitch.length > 2000) {
       newErrors.pitch = "Pitch must be less than 2000 characters";
     }
-    if (formData.fundingAsk && (isNaN(Number(formData.fundingAsk)) || Number(formData.fundingAsk) < 0)) {
-      newErrors.fundingAsk = "Funding ask must be a positive number";
+    if (formData.fundingNeeded && (isNaN(Number(formData.fundingNeeded)) || Number(formData.fundingNeeded) < 0)) {
+      newErrors.fundingNeeded = "Funding ask must be a positive number";
     }
     if (formData.teamSize && (isNaN(Number(formData.teamSize)) || Number(formData.teamSize) < 1 || Number(formData.teamSize) > 10000)) {
       newErrors.teamSize = "Team size must be between 1 and 10,000";
@@ -148,7 +148,7 @@ export function ProfileSetupForm() {
       sector: formData.sector.trim(),
       startupStage: formData.startupStage,
       location: formData.location.trim() || undefined,
-      fundingAsk: formData.fundingAsk ? Number(formData.fundingAsk) : undefined,
+      fundingNeeded: formData.fundingNeeded ? Number(formData.fundingNeeded) : undefined,
       websiteUrl: formData.websiteUrl.trim() || undefined,
       logoUrl: formData.logoUrl.trim() || undefined,
       teamSize: formData.teamSize ? Number(formData.teamSize) : undefined
@@ -376,15 +376,15 @@ export function ProfileSetupForm() {
             </label>
             <input
               type="number"
-              value={formData.fundingAsk}
-              onChange={(e) => handleChange("fundingAsk", e.target.value)}
+              value={formData.fundingNeeded}
+              onChange={(e) => handleChange("fundingNeeded", e.target.value)}
               placeholder="e.g., 500000"
               min="0"
               max="100000000"
               className="w-full bg-gray-50 border border-emerald-200 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />
-            {errors.fundingAsk && (
-              <p className="mt-1 text-sm text-red-600">{errors.fundingAsk}</p>
+            {errors.fundingNeeded && (
+              <p className="mt-1 text-sm text-red-600">{errors.fundingNeeded}</p>
             )}
           </div>
 

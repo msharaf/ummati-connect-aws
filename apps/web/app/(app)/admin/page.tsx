@@ -216,7 +216,7 @@ export default function AdminPage() {
 
                     return (
                       <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4 text-gray-900">{user.fullName || user.name || "N/A"}</td>
+                        <td className="py-3 px-4 text-gray-900">{user.fullName ?? "N/A"}</td>
                         <td className="py-3 px-4 text-gray-700">{user.email}</td>
                         <td className="py-3 px-4">
                           {user.role ? (

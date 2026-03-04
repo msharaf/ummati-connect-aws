@@ -7,12 +7,6 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
     exclude: ["**/node_modules/**", "**/dist/**", "**/tests/e2e/**"],
-    pool: "forks",
-    poolOptions: {
-      forks: {
-        singleFork: true, // Use single fork for CommonJS compatibility
-      },
-    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],

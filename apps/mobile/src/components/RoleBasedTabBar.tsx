@@ -25,12 +25,8 @@ export function RoleBasedTabBar({ state, descriptors, navigation }: BottomTabBar
     // Visionary dashboard - hidden; core tabs only (Swipe, Connections, Profile)
     if (routeName === "visionary/dashboard") return false;
 
-    // HARD GATE: Hide protected tabs for investors until onboarding complete
-    if (isInvestor && !onboardingComplete) {
-      // During onboarding: only setup; setup has href:null so no tabs shown
-      if (routeName.startsWith("investor")) return true;
-      return false;
-    }
+    // During investor onboarding: no tab bar tabs (user is on halalfocus/setup)
+    if (isInvestor && !onboardingComplete) return false;
 
     // Core tabs - show after onboarding complete
     if (routeName.startsWith("swipe")) return true;

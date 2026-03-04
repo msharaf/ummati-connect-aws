@@ -67,7 +67,13 @@ function AuthenticatedApp() {
   // Handle Android hardware back button globally
   useBackHandler(() => {
     const inTabsGroup = segments[0] === "(tabs)";
+    const inOnboardingGroup = segments[0] === "(onboarding)";
     const isWelcomeScreen = segments?.[1] === "welcome";
+
+    // When in onboarding, let Stack handle back (investor-halalfocus <-> investor-setup)
+    if (inOnboardingGroup) {
+      return false;
+    }
 
     // Unauthenticated: prevent back into authenticated screens
     if (!isSignedIn) {
@@ -88,71 +94,111 @@ function AuthenticatedApp() {
   });
 
   // AUTH GATE (single source of truth) - controls navigation based on auth state
+  // Single ordered redirect decision; idempotent (never redirect if already on target)
   useEffect(() => {
+    let redirectDecision = "no_redirect";
     const path = pathname ?? "";
-    const isOnHalalFocus = path.includes("halalfocus");
-    const isOnInvestorSetup = path.includes("investor/setup");
+    const isOnHalalFocus = path.includes("investor-halalfocus");
+    const isOnInvestorSetup = path.includes("investor-setup");
     const inTabsGroup = segments[0] === "(tabs)";
-    const isOnInvestorIndex = inTabsGroup && path.includes("investor") && !path.includes("investor/setup") && !path.includes("investor/halalfocus");
-
-    // Reset redirect guard when we've arrived (prevents infinite loop)
-    if (inTabsGroup || isOnHalalFocus || isOnInvestorSetup) {
-      redirectingRef.current = false;
-    }
-    if (redirectingRef.current) return;
-
+    const inOnboardingGroup = segments[0] === "(onboarding)";
     const inAuthGroup = segments[0] === "(auth)";
     const isWelcomeScreen = segments?.[1] === "welcome";
     const isChooseRole = segments?.[1] === "choose-role";
 
-    // NOT signed in: only auth stack; force welcome
+    const logAuthGate = () => {
+      if (__DEV__) {
+        console.group("[Auth Gate]");
+        // eslint-disable-next-line no-console
+        console.log({
+          pathname,
+          segments,
+          isSignedIn,
+          role: userData?.role,
+          onboardingComplete: userData?.onboardingComplete,
+          halalFocusVerified: userData?.halalFocusVerified,
+          isOnHalalFocus,
+          isOnInvestorSetup,
+          redirectDecision
+        });
+        console.groupEnd();
+      }
+    };
+
+    // Reset redirect guard when we've arrived (prevents infinite loop)
+    if (inTabsGroup || inOnboardingGroup || isOnHalalFocus || isOnInvestorSetup) {
+      redirectingRef.current = false;
+    }
+    if (redirectingRef.current) {
+      redirectDecision = "skip_already_redirecting";
+      logAuthGate();
+      return;
+    }
+
+    // 1) Not signed in → welcome (idempotent)
     if (!isSignedIn) {
       if (!isWelcomeScreen) {
         redirectingRef.current = true;
+        redirectDecision = "redirect_to_welcome";
+        logAuthGate();
         queueMicrotask(() => routerRef.current.replace("/(auth)/welcome"));
+      } else {
+        redirectDecision = "stay_welcome";
+        logAuthGate();
       }
       return;
     }
 
     // Signed in: wait for user data before routing
-    if (isLoadingUser) return;
+    if (isLoadingUser) {
+      redirectDecision = "wait_user_loading";
+      logAuthGate();
+      return;
+    }
 
-    // Signed in, NO ROLE → force choose-role
-    if (!userData?.role) {
+    // 2) No role or role not INVESTOR/VISIONARY → choose-role (idempotent)
+    const role = userData?.role;
+    if (!role || (role !== "INVESTOR" && role !== "VISIONARY")) {
       if (!isChooseRole) {
         redirectingRef.current = true;
+        redirectDecision = "redirect_to_choose_role";
+        logAuthGate();
         queueMicrotask(() => routerRef.current.replace("/(auth)/choose-role"));
+      } else {
+        redirectDecision = "stay_choose_role";
+        logAuthGate();
       }
       return;
     }
 
-    // investorOnboardingComplete = user.me.onboardingComplete (INVESTOR only)
-    // halalFocusVerified = user.me.halalFocusVerified (from halalCategory or hasAcceptedHalalTerms)
     const investorOnboardingComplete = userData.onboardingComplete ?? false;
     const halalFocusVerified = userData.halalFocusVerified ?? false;
-    const isInvestor = userData.role === "INVESTOR";
-    const isVisionary = userData.role === "VISIONARY";
+    const isInvestor = role === "INVESTOR";
+    const isVisionary = role === "VISIONARY";
 
-    // INVESTOR GATE: 1) HalalFocus first, 2) then profile setup (prevent redirect loops)
+    // 3) INVESTOR: HalalFocus first, then setup, then swipe
     if (isInvestor) {
       if (!halalFocusVerified && !isOnHalalFocus) {
         redirectingRef.current = true;
-        queueMicrotask(() => routerRef.current.replace("/(tabs)/investor/halalfocus"));
+        redirectDecision = "redirect_to_halalfocus";
+        logAuthGate();
+        queueMicrotask(() => routerRef.current.replace("/(onboarding)/investor-halalfocus"));
         return;
       }
       if (!investorOnboardingComplete && !isOnInvestorSetup) {
-        // Skip when on investor index or choose-role - investor index handles redirect to setup
-        if (isOnInvestorIndex || isChooseRole) return;
-        // Redirect to investor index; it will redirect to setup (avoids root REPLACE to nested tab)
         redirectingRef.current = true;
-        queueMicrotask(() => routerRef.current.replace("/(tabs)/investor"));
+        redirectDecision = "redirect_to_setup";
+        logAuthGate();
+        queueMicrotask(() => routerRef.current.replace("/(onboarding)/investor-setup"));
         return;
       }
     }
 
-    // Redirect away from auth screens to app (only after gates pass)
+    // 4) Redirect away from auth screens to app (only after gates pass)
     if (inAuthGroup) {
       redirectingRef.current = true;
+      redirectDecision = "redirect_to_app";
+      logAuthGate();
       const target =
         isInvestor
           ? "/(tabs)/swipe"
@@ -160,6 +206,8 @@ function AuthenticatedApp() {
             ? "/(tabs)/visionary/dashboard"
             : "/(tabs)/swipe";
       queueMicrotask(() => routerRef.current.replace(target));
+    } else {
+      logAuthGate();
     }
   }, [isSignedIn, segments, pathname, userData, isLoadingUser]);
 

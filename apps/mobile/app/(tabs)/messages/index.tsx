@@ -4,7 +4,6 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image } from
 import { useRouter } from "expo-router";
 import { formatDistanceToNow } from "date-fns";
 import { trpc } from "../../../src/lib/trpc";
-import { InvestorOnboardingGuard } from "../../../src/components/InvestorOnboardingGuard";
 
 interface Match {
   matchId: string;
@@ -32,11 +31,7 @@ interface Match {
 }
 
 export default function MessagesTab() {
-  return (
-    <InvestorOnboardingGuard>
-      <MessagesTabContent />
-    </InvestorOnboardingGuard>
-  );
+  return <MessagesTabContent />;
 }
 
 function MessagesTabContent() {

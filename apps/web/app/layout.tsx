@@ -37,7 +37,6 @@ export default function RootLayout({
           <ClerkProvider
             afterSignInUrl="/dashboard"
             afterSignUpUrl="/onboarding/choose-role"
-            signOutRedirectUrl="/"
           >
             <TRPCProvider>{children}</TRPCProvider>
           </ClerkProvider>

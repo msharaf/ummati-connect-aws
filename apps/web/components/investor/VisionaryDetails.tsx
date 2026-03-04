@@ -22,7 +22,6 @@ export function VisionaryDetails({ profileId, onClose }: VisionaryDetailsProps) 
 
   const shortlist = trpc.investor.shortlistVisionary.useMutation({
     onSuccess: () => {
-      utils.investor.getShortlist.invalidate();
       utils.investor.getVisionaryDetails.invalidate({ visionaryId: profileId! });
       utils.investor.browseVisionaries.invalidate();
     },
@@ -64,6 +63,13 @@ export function VisionaryDetails({ profileId, onClose }: VisionaryDetailsProps) 
   }
 
   const displayName = profile.name || "Unknown Founder";
+  const vp = profile.visionaryProfile;
+  const barakahScore = typeof vp?.barakahScore === "object" && vp?.barakahScore !== null
+    ? (vp.barakahScore as { score?: number }).score
+    : null;
+  const barakahNotes = typeof vp?.barakahScore === "object" && vp?.barakahScore !== null
+    ? (vp.barakahScore as { notes?: string | null }).notes
+    : null;
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 h-full overflow-y-auto">
@@ -87,7 +93,7 @@ export function VisionaryDetails({ profileId, onClose }: VisionaryDetailsProps) 
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold text-charcoal mb-1">{profile.startupName}</h2>
+            <h2 className="text-2xl font-bold text-charcoal mb-1">{vp?.startupName ?? "Startup"}</h2>
             <p className="text-charcoal/70">{displayName}</p>
           </div>
         </div>
@@ -103,19 +109,19 @@ export function VisionaryDetails({ profileId, onClose }: VisionaryDetailsProps) 
       {/* Badges */}
       <div className="flex flex-wrap gap-2 mb-6">
         <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-medium rounded-full">
-          {profile.sector}
+          {vp?.sector ?? vp?.industry ?? "—"}
         </span>
         <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-sm font-medium rounded-full">
-          {profile.startupStage}
+          {vp?.startupStage ?? "—"}
         </span>
-        {profile.halalCategory && (
+        {vp?.halalCategory && (
           <span className="px-3 py-1 bg-yellow-50 text-yellow-700 text-sm font-medium rounded-full">
-            {profile.halalCategory}
+            {vp.halalCategory}
           </span>
         )}
-        {profile.barakahScore && (
+        {barakahScore != null && (
           <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-sm font-medium rounded-full">
-            Barakah: {profile.barakahScore}/10
+            Barakah: {barakahScore}/10
           </span>
         )}
       </div>
@@ -124,49 +130,49 @@ export function VisionaryDetails({ profileId, onClose }: VisionaryDetailsProps) 
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-charcoal mb-2">About</h3>
         <p className="text-charcoal/70 leading-relaxed whitespace-pre-wrap">
-          {profile.description}
+          {vp?.description ?? "No description"}
         </p>
       </div>
 
       {/* Details Grid */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        {profile.location && (
+        {(vp?.location ?? profile.location) && (
           <div>
             <p className="text-sm text-charcoal/60 mb-1">Location</p>
-            <p className="text-charcoal font-medium">{profile.location}</p>
+            <p className="text-charcoal font-medium">{vp?.location ?? profile.location}</p>
           </div>
         )}
-        {profile.fundingAsk && (
+        {vp?.fundingNeeded != null && (
           <div>
             <p className="text-sm text-charcoal/60 mb-1">Funding Ask</p>
             <p className="text-charcoal font-medium">
-              ${profile.fundingAsk.toLocaleString()}
+              ${vp.fundingNeeded.toLocaleString()}
             </p>
           </div>
         )}
-        {profile.websiteUrl && (
+        {vp?.websiteUrl && (
           <div className="col-span-2">
             <p className="text-sm text-charcoal/60 mb-1">Website</p>
             <a
-              href={profile.websiteUrl}
+              href={vp.websiteUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-emerald-600 hover:text-emerald-700 font-medium break-all"
             >
-              {profile.websiteUrl}
+              {vp.websiteUrl}
             </a>
           </div>
         )}
       </div>
 
       {/* Barakah Score Details */}
-      {profile.barakahScore && (
+      {barakahScore != null && (
         <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
           <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-            Barakah Score: {profile.barakahScore}/10
+            Barakah Score: {barakahScore}/10
           </h3>
-          {profile.barakahNotes && (
-            <p className="text-yellow-700 text-sm">{profile.barakahNotes}</p>
+          {barakahNotes && (
+            <p className="text-yellow-700 text-sm">{barakahNotes}</p>
           )}
         </div>
       )}
@@ -176,17 +182,9 @@ export function VisionaryDetails({ profileId, onClose }: VisionaryDetailsProps) 
         <button
           onClick={handleShortlist}
           disabled={isShortlisting}
-          className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors ${
-            profile.isShortlisted
-              ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-          } disabled:opacity-50`}
+          className="flex-1 px-4 py-2 rounded-lg font-semibold transition-colors bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
         >
-          {isShortlisting
-            ? "Loading..."
-            : profile.isShortlisted
-            ? "⭐ Shortlisted"
-            : "⭐ Add to Shortlist"}
+          {isShortlisting ? "Loading..." : "⭐ Add to Shortlist"}
         </button>
         <Link
           href="/dashboard"

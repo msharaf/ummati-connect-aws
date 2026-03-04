@@ -38,11 +38,11 @@ export function VisionaryList({ filters }: VisionaryListProps) {
       limit: 20
     },
     {
-      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined
+      getNextPageParam: (lastPage: { nextCursor?: string | null }) => lastPage.nextCursor ?? undefined
     }
   );
 
-  const profiles = data?.pages.flatMap((page) => page.profiles) ?? [];
+  const profiles = data?.pages.flatMap((page: { profiles: unknown[] }) => page.profiles) ?? [];
 
   const handleSelectProfile = (profileId: string) => {
     router.push(`/(modals)/visionary/${profileId}`);
@@ -148,7 +148,7 @@ export function VisionaryList({ filters }: VisionaryListProps) {
     <FlatList
       data={profiles}
       renderItem={renderProfile}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item: unknown, _index: number) => (item as { id: string }).id}
       onEndReached={() => {
         if (hasNextPage && !isFetchingNextPage) {
           fetchNextPage();

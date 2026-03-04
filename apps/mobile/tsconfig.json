@@ -9,7 +9,8 @@
       "@ummati/api": ["../../packages/api/src"],
       "@ummati/api/types": ["../../packages/api/src/types.ts"],
       "@ummati/api/constants": ["../../packages/api/src/constants.ts"],
-      "@ummati/db": ["../../packages/db/src"]
+      "@ummati/db": ["../../packages/db/src"],
+      "@ummati/db/types": ["../../packages/db/src/types.ts"]
     },
     "types": ["nativewind/types", "react-native", "expo"]
   },
